@@ -36,6 +36,7 @@ def train_step(generator, discriminator, images, cross_entropy, g_optimizer, d_o
 
 
 def train(generator, discriminator, dataset, cross_entropy, g_optimizer, d_optimizer, epochs=100):
+    convert_random(discriminator, generator)
     for epoch in range(epochs):
         start = time.time()
 
@@ -49,24 +50,25 @@ def train(generator, discriminator, dataset, cross_entropy, g_optimizer, d_optim
 def convert_random(discriminator, generator):
     filename = random.choice(os.listdir("data/seg_train/forest/sub"))
     path = "data/seg_train/forest/sub/" + filename
+    fig = plt.figure()
 
     rgb_image = tf.keras.preprocessing.image.load_img(path, target_size=(150, 150))
     rgb_image_tensor = tf.keras.preprocessing.image.img_to_array(rgb_image)
-    disc_result = discriminator.predict(tf.expand_dims(rgb_image_tensor, axis=0))
-    plt.text(55, -10, str(round(disc_result[0, 0] * 100, 1)) + "%", fontsize=20)
+    real_predict = discriminator.predict(tf.expand_dims(rgb_image_tensor, axis=0))
 
-    plt.imshow(rgb_image_tensor/255)
+    fig.add_subplot(1, 2, 1)
     plt.axis("off")
-    plt.show()
+    plt.text(50, -10, str(round(real_predict[0, 0] * 100, 1)) + "%", fontsize=18)
+    plt.imshow(rgb_image_tensor/255)
 
     grayscale_image = tf.image.rgb_to_grayscale(rgb_image_tensor)
     grayscale_image = tf.expand_dims(grayscale_image, axis=0)
-    gan_image = generator(grayscale_image, training=False)
-    disc_result = discriminator.predict(gan_image)
-    print(disc_result)
+    gen_image = generator(grayscale_image, training=False)
+    gen_predict = discriminator.predict(gen_image)
 
-    plt.text(55, -10, str(round(disc_result[0, 0] * 100, 1)) + "%", fontsize=20)
-
-    plt.imshow(gan_image[0, :, :, 0] * 127.5 + 127.5)
+    fig.add_subplot(1, 2, 2)
     plt.axis("off")
+    plt.text(50, -10, str(round(gen_predict[0, 0] * 100, 1)) + "%", fontsize=18)
+    plt.imshow(gen_image[0, :, :, 0] * 127.5 + 127.5)
+
     plt.show()
