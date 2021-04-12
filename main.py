@@ -10,6 +10,7 @@ def create_generator():
 
     model.add(layers.Conv2D(128, use_bias=False, kernel_size=(3, 3), strides=(2, 2), padding="same",
                             input_shape=(150, 150, 1)))
+
     assert model.output_shape == (None, 75, 75, 128)
     model.add(layers.BatchNormalization())
     model.add(layers.Dropout(.5, input_shape=(100,)))
@@ -50,13 +51,13 @@ def create_discriminator():
 
 def main():
     ds = tf.keras.preprocessing.image_dataset_from_directory("data/seg_train/forest",
-                                                                  label_mode=None,
-                                                                  batch_size=BATCH_SIZE,
-                                                                  image_size=(150, 150))
+                                                             label_mode=None,
+                                                             batch_size=BATCH_SIZE,
+                                                             image_size=(150, 150))
 
     generator = create_generator()
     discriminator = create_discriminator()
-    learning_rate = 1e-4
+    learning_rate = 2e-4
     g_optimizer = tf.keras.optimizers.Adam(learning_rate)
     d_optimizer = tf.keras.optimizers.Adam(learning_rate)
     cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
@@ -67,7 +68,7 @@ def main():
 if __name__ == "__main__":
     physical_devices = tf.config.list_physical_devices("GPU")
     tf.config.experimental.set_memory_growth(physical_devices[0], True)
-    tf.config.run_functions_eagerly(True)
+    #tf.config.run_functions_eagerly(True)
 
     noise_dim = 10
     image_width = 150

@@ -4,6 +4,7 @@ import random
 import tensorflow as tf
 import time
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def discriminator_loss(cross_entropy, real_output, gen_output):
@@ -64,11 +65,14 @@ def convert_random(discriminator, generator):
     grayscale_image = tf.image.rgb_to_grayscale(rgb_image_tensor)
     grayscale_image = tf.expand_dims(grayscale_image, axis=0)
     gen_image = generator(grayscale_image, training=False)
+    print(gen_image[0, 0, 0, 0] * 127.5 + 127.5)
+    print(gen_image[0, 0, 0, 1] * 127.5 + 127.5)
+    print(gen_image[0, 0, 0, 2] * 127.5 + 127.5)
     gen_predict = discriminator.predict(gen_image)
 
     fig.add_subplot(1, 2, 2)
     plt.axis("off")
     plt.text(50, -10, str(round(gen_predict[0, 0] * 100, 1)) + "%", fontsize=18)
-    plt.imshow(gen_image[0, :, :, 0] * 127.5 + 127.5)
+    plt.imshow(np.uint8(gen_image[0, :, :, :] * 127.5 + 127.5))
 
     plt.show()
