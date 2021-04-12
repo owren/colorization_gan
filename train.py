@@ -65,9 +65,6 @@ def convert_random(discriminator, generator):
     grayscale_image = tf.image.rgb_to_grayscale(rgb_image_tensor)
     grayscale_image = tf.expand_dims(grayscale_image, axis=0)
     gen_image = generator(grayscale_image, training=False)
-    print(gen_image[0, 0, 0, 0] * 127.5 + 127.5)
-    print(gen_image[0, 0, 0, 1] * 127.5 + 127.5)
-    print(gen_image[0, 0, 0, 2] * 127.5 + 127.5)
     gen_predict = discriminator.predict(gen_image)
 
     fig.add_subplot(1, 2, 2)

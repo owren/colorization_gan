@@ -13,12 +13,13 @@ def create_generator():
 
     assert model.output_shape == (None, 75, 75, 128)
     model.add(layers.BatchNormalization())
-    model.add(layers.Dropout(.5, input_shape=(100,)))
+    model.add(layers.Dropout(.5))
     model.add(layers.LeakyReLU())
 
     model.add(layers.Conv2D(64, use_bias=False, kernel_size=(3, 3), padding="same", strides=(3, 3)))
     assert model.output_shape == (None, 25, 25, 64)
     model.add(layers.BatchNormalization())
+    model.add(layers.Dropout(.5))
     model.add(layers.LeakyReLU())
 
     model.add(layers.Conv2DTranspose(128, kernel_size=(3, 3), strides=(3, 3), padding="same", use_bias=False))
