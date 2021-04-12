@@ -8,39 +8,52 @@ from train import *
 def create_generator():
     model = tf.keras.Sequential()
 
-    model.add(layers.Conv2D(128, use_bias=False, kernel_size=(3, 3), strides=(2, 2), padding="same",
-                            input_shape=(150, 150, 1)))
+    model.add(layers.Conv2D(256, use_bias=False, kernel_size=(4, 4), strides=(2, 2), padding="same",
+                            input_shape=(152, 152, 1)))
+    print(model.output_shape)
+    model.add(layers.BatchNormalization())
+    model.add(layers.LeakyReLU())
 
-    assert model.output_shape == (None, 75, 75, 128)
+    model.add(layers.Conv2D(128, kernel_size=(4, 4), strides=(2, 2), padding="same", use_bias=False))
+    print(model.output_shape)
+    model.add(layers.BatchNormalization())
+    model.add(layers.LeakyReLU())
+
+    model.add(layers.Conv2D(64, kernel_size=(4, 4), strides=(2, 2), padding="same", use_bias=False))
+    print(model.output_shape)
+    model.add(layers.BatchNormalization())
+    model.add(layers.LeakyReLU())
+
+    model.add(layers.Conv2DTranspose(64, kernel_size=(4, 4), strides=(2, 2), padding="same", use_bias=False))
+    print(model.output_shape)
     model.add(layers.BatchNormalization())
     model.add(layers.Dropout(.5))
     model.add(layers.LeakyReLU())
 
-    model.add(layers.Conv2D(64, use_bias=False, kernel_size=(3, 3), padding="same", strides=(3, 3)))
-    assert model.output_shape == (None, 25, 25, 64)
+    model.add(layers.Conv2DTranspose(128, kernel_size=(4, 4), strides=(2, 2), padding="same", use_bias=False))
+    print(model.output_shape)
     model.add(layers.BatchNormalization())
     model.add(layers.Dropout(.5))
     model.add(layers.LeakyReLU())
 
-    model.add(layers.Conv2DTranspose(128, kernel_size=(3, 3), strides=(3, 3), padding="same", use_bias=False))
-    assert model.output_shape == (None, 75, 75, 128)
-    model.add(layers.BatchNormalization())
-    model.add(layers.LeakyReLU())
-
-    model.add(layers.Conv2DTranspose(3, kernel_size=(3, 3), strides=(2, 2), padding="same", use_bias=False,
+    model.add(layers.Conv2DTranspose(3, kernel_size=(4, 4), strides=(2, 2), padding="same", use_bias=False,
                                      activation="tanh"))
-    assert model.output_shape == (None, 150, 150, 3)
+    print(model.output_shape)
+    assert model.output_shape == (None, 152, 152, 3)
 
     return model
 
 
 def create_discriminator():
     model = tf.keras.Sequential()
-    model.add(layers.Conv2D(32, 3, padding="same"))
+    model.add(layers.Conv2D(32, kernel_size=(4, 4), strides=(2, 2), padding="same"))
+    model.add(layers.LeakyReLU())
+
+    model.add(layers.Conv2D(64, kernel_size=(4, 4), strides=(2, 2), padding="same"))
     model.add(layers.BatchNormalization())
     model.add(layers.LeakyReLU())
 
-    model.add(layers.Conv2D(32, 3, padding="same"))
+    model.add(layers.Conv2D(128, kernel_size=(4, 4), strides=(2, 2), padding="same"))
     model.add(layers.BatchNormalization())
     model.add(layers.LeakyReLU())
 
@@ -54,7 +67,7 @@ def main():
     ds = tf.keras.preprocessing.image_dataset_from_directory("data/seg_train/forest",
                                                              label_mode=None,
                                                              batch_size=BATCH_SIZE,
-                                                             image_size=(150, 150))
+                                                             image_size=(152, 152))
 
     generator = create_generator()
     discriminator = create_discriminator()

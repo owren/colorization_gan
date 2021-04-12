@@ -36,7 +36,7 @@ def train_step(generator, discriminator, images, cross_entropy, g_optimizer, d_o
     d_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
 
 
-def train(generator, discriminator, dataset, cross_entropy, g_optimizer, d_optimizer, epochs=100):
+def train(generator, discriminator, dataset, cross_entropy, g_optimizer, d_optimizer, epochs=10000):
     convert_random(discriminator, generator)
     for epoch in range(epochs):
         start = time.time()
