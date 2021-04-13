@@ -46,7 +46,7 @@ def create_generator():
 
 def create_discriminator():
     model = tf.keras.Sequential()
-    model.add(layers.Conv2D(32, kernel_size=(4, 4), strides=(2, 2), padding="same"))
+    model.add(layers.Conv2D(32, kernel_size=(4, 4), strides=(2, 2), padding="same", input_shape=(150, 150, 3)))
     model.add(layers.LeakyReLU())
 
     model.add(layers.Conv2D(64, kernel_size=(4, 4), strides=(2, 2), padding="same"))
@@ -58,6 +58,15 @@ def create_discriminator():
     model.add(layers.LeakyReLU())
 
     model.add(layers.Flatten())
+
+    model.add(layers.Dense(2048))
+    model.add(layers.BatchNormalization())
+    model.add(layers.LeakyReLU())
+
+    model.add(layers.Dense(512))
+    model.add(layers.BatchNormalization())
+    model.add(layers.LeakyReLU())
+
     model.add(layers.Dense(1, activation="sigmoid"))
 
     return model
@@ -71,6 +80,7 @@ def main():
 
     generator = create_generator()
     discriminator = create_discriminator()
+    discriminator.summary()
     learning_rate = 2e-4
     g_optimizer = tf.keras.optimizers.Adam(learning_rate)
     d_optimizer = tf.keras.optimizers.Adam(learning_rate)
@@ -80,8 +90,8 @@ def main():
 
 
 if __name__ == "__main__":
-    physical_devices = tf.config.list_physical_devices("GPU")
-    tf.config.experimental.set_memory_growth(physical_devices[0], True)
+    #physical_devices = tf.config.list_physical_devices("GPU")
+    #tf.config.experimental.set_memory_growth(physical_devices[0], True)
     #tf.config.run_functions_eagerly(True)
 
     noise_dim = 10
