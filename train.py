@@ -14,8 +14,13 @@ def discriminator_loss(cross_entropy, real_output, gen_output):
     return total_loss
 
 
-def generator_loss(cross_entropy, gen_output):
-    return cross_entropy(tf.ones_like(gen_output), gen_output)
+def generator_loss(cross_entropy, disc_gen_output, gen_output, real_output):
+    gan_loss = cross_entropy(tf.ones_like(disc_gen_output), disc_gen_output)
+
+    l1_loss = tf.reduce_mean(tf.abs(real_output - gen_output))
+
+    total_loss = gan_loss + (100 * l1_loss)
+    return total_loss
 
 
 @tf.function
@@ -23,10 +28,10 @@ def train_step(generator, discriminator, images, cross_entropy, g_optimizer, d_o
     with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
         generated_image = generator(tf.image.rgb_to_grayscale(images), training=True)
 
-        real_output = discriminator(images, training=True)
-        gen_output = discriminator(generated_image, training=True)
+        real_output = discriminator(images, images, training=True)
+        gen_output = discriminator(generated_image, images, training=True)
 
-        gen_loss = generator_loss(cross_entropy, gen_output)
+        gen_loss = generator_loss(cross_entropy, gen_output, generated_image, images)
         disc_loss = discriminator_loss(cross_entropy, real_output, gen_output)
 
     gradients_of_generator = gen_tape.gradient(gen_loss, generator.trainable_variables)

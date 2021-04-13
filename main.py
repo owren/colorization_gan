@@ -44,12 +44,37 @@ def create_generator():
     return model
 
 
-def create_discriminator():
+def new_discriminator():
     model = tf.keras.Sequential()
-    model.add(layers.Conv2D(32, kernel_size=(4, 4), strides=(2, 2), padding="same", input_shape=(150, 150, 3)))
+
+    inp = tf.keras.layers.Input(shape=[152, 152, 3], name='input_image')
+    tar = tf.keras.layers.Input(shape=[152, 152, 3], name='target_image')
+
+    model.add(tf.keras.layers.concatenate([inp, tar]))
+    model.add(layers.Conv2D(32, kernel_size=(4, 4), strides=(2, 2), padding="same", use_bias=False))
     model.add(layers.LeakyReLU())
 
-    model.add(layers.Conv2D(64, kernel_size=(4, 4), strides=(2, 2), padding="same"))
+    model.add(layers.Conv2D(64, kernel_size=(4, 4), strides=(2, 2), padding="same", use_bias=False))
+    model.add(layers.BatchNormalization())
+    model.add(layers.LeakyReLU())
+
+    model.add(layers.Conv2D(128, kernel_size=(4, 4), strides=(2, 2), padding="same", use_bias=False))
+    model.add(layers.BatchNormalization())
+    model.add(layers.LeakyReLU())
+
+    model.add(layers.ZeroPadding2D())
+
+    model.add(layers.Conv2D(1, kernel_size=(4, 4), strides=(1, 1)))
+
+    return model
+
+
+def create_discriminator():
+    model = tf.keras.Sequential()
+    model.add(layers.Conv2D(32, kernel_size=(4, 4), strides=(2, 2), padding="same", input_shape=(152, 150, 3)))
+    model.add(layers.LeakyReLU())
+
+    model.add(layers.Conv2D(64, kernel_size=(4, 4), strides=(2, 2), padding="same", use_bias=False))
     model.add(layers.BatchNormalization())
     model.add(layers.LeakyReLU())
 
@@ -79,8 +104,7 @@ def main():
                                                              image_size=(152, 152))
 
     generator = create_generator()
-    discriminator = create_discriminator()
-    discriminator.summary()
+    discriminator = new_discriminator()
     learning_rate = 2e-4
     g_optimizer = tf.keras.optimizers.Adam(learning_rate)
     d_optimizer = tf.keras.optimizers.Adam(learning_rate)
@@ -94,7 +118,6 @@ if __name__ == "__main__":
     #tf.config.experimental.set_memory_growth(physical_devices[0], True)
     #tf.config.run_functions_eagerly(True)
 
-    noise_dim = 10
     image_width = 150
     image_height = 150
     BATCH_SIZE = 32
