@@ -11,6 +11,7 @@ def discriminator_loss(cross_entropy, real_output, gen_output):
     real_loss = cross_entropy(tf.ones_like(real_output), real_output)
     gen_loss = cross_entropy(tf.zeros_like(gen_output), gen_output)
     total_loss = real_loss + gen_loss
+    print("disc loss: " + str(total_loss))
     return total_loss
 
 
@@ -20,16 +21,21 @@ def generator_loss(cross_entropy, disc_gen_output, gen_output, real_output):
     l1_loss = tf.reduce_mean(tf.abs(real_output - gen_output))
 
     total_loss = gan_loss + (100 * l1_loss)
+
+    print("gen loss: " + str(gan_loss))
+    print("rmse loss: " + str(l1_loss))
+
     return total_loss
 
 
 @tf.function
 def train_step(generator, discriminator, images, cross_entropy, g_optimizer, d_optimizer):
     with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
-        generated_image = generator(tf.image.rgb_to_grayscale(images), training=True)
+        grayscale_batch = tf.image.rgb_to_grayscale(images)
+        generated_image = generator(grayscale_batch, training=True)
 
-        real_output = discriminator(images, images, training=True)
-        gen_output = discriminator(generated_image, images, training=True)
+        real_output = discriminator([grayscale_batch, images], training=True)
+        gen_output = discriminator([grayscale_batch, generated_image], training=True)
 
         gen_loss = generator_loss(cross_entropy, gen_output, generated_image, images)
         disc_loss = discriminator_loss(cross_entropy, real_output, gen_output)
@@ -58,24 +64,30 @@ def convert_random(epoch, discriminator, generator):
     path = "data/seg_train/forest/sub/" + filename
     fig = plt.figure()
 
-    rgb_image = tf.keras.preprocessing.image.load_img(path, target_size=(150, 150))
+    rgb_image = tf.keras.preprocessing.image.load_img(path, target_size=(128, 128))
     rgb_image_tensor = tf.keras.preprocessing.image.img_to_array(rgb_image)
-    real_predict = discriminator.predict(tf.expand_dims(rgb_image_tensor, axis=0))
-
-    fig.add_subplot(1, 2, 1)
-    plt.axis("off")
-    plt.text(50, -10, str(round(real_predict[0, 0] * 100, 1)) + "%", fontsize=16)
-    plt.text(125, -45, "Epoch: " + str(epoch), fontsize=18)
-    plt.imshow(rgb_image_tensor/255)
-
+    rgb_image_tensor = tf.expand_dims(rgb_image_tensor, axis=0)
     grayscale_image = tf.image.rgb_to_grayscale(rgb_image_tensor)
-    grayscale_image = tf.expand_dims(grayscale_image, axis=0)
-    gen_image = generator(grayscale_image, training=False)
-    gen_predict = discriminator.predict(gen_image)
+    real_predict = discriminator.predict([grayscale_image, rgb_image_tensor])
 
-    fig.add_subplot(1, 2, 2)
+    fig.add_subplot(1, 3, 1)
     plt.axis("off")
-    plt.text(50, -10, str(round(gen_predict[0, 0] * 100, 1)) + "%", fontsize=16)
-    plt.imshow(np.uint8(gen_image[0, :, :, :] * 127.5 + 127.5))
+    #plt.text(50, -10, str(round(real_predict[0, 0] * 100, 1)) + "%", fontsize=16)
+    plt.text(125, -45, "Epoch: " + str(epoch), fontsize=18)
+    plt.imshow(rgb_image)
+
+
+    gen_image = generator(grayscale_image, training=False)
+    #gen_predict = discriminator.predict([gen_image, rgb_image_tensor])
+
+    fig.add_subplot(1, 3, 2)
+    plt.axis("off")
+    #plt.text(50, -10, str(round(gen_predict[0, 0] * 100, 1)) + "%", fontsize=16)
+    plt.imshow(gen_image[0])
+
+    fig.add_subplot(1, 3, 3)
+    plt.axis("off")
+    #plt.text(50, -10, str(round(gen_predict[0, 0] * 100, 1)) + "%", fontsize=16)
+    plt.imshow((gen_image[0] * 127.5) + 127.5)
 
     plt.show()

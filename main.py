@@ -5,105 +5,111 @@ import matplotlib.pyplot as plt
 from train import *
 
 
-def create_generator():
-    model = tf.keras.Sequential()
+def downsample(filters, kernel_size, strides, batchnorm=True):
+    layer = tf.keras.Sequential()
+    layer.add(layers.Conv2D(filters, kernel_size=kernel_size, strides=strides, padding="same", use_bias=False))
 
-    model.add(layers.Conv2D(256, use_bias=False, kernel_size=(4, 4), strides=(2, 2), padding="same",
-                            input_shape=(152, 152, 1)))
-    print(model.output_shape)
-    model.add(layers.BatchNormalization())
-    model.add(layers.LeakyReLU())
+    if batchnorm:
+        layer.add(tf.keras.layers.BatchNormalization())
 
-    model.add(layers.Conv2D(128, kernel_size=(4, 4), strides=(2, 2), padding="same", use_bias=False))
-    print(model.output_shape)
-    model.add(layers.BatchNormalization())
-    model.add(layers.LeakyReLU())
+    layer.add(tf.keras.layers.LeakyReLU())
 
-    model.add(layers.Conv2D(64, kernel_size=(4, 4), strides=(2, 2), padding="same", use_bias=False))
-    print(model.output_shape)
-    model.add(layers.BatchNormalization())
-    model.add(layers.LeakyReLU())
+    return layer
 
-    model.add(layers.Conv2DTranspose(64, kernel_size=(4, 4), strides=(2, 2), padding="same", use_bias=False))
-    print(model.output_shape)
-    model.add(layers.BatchNormalization())
-    model.add(layers.Dropout(.5))
-    model.add(layers.LeakyReLU())
 
-    model.add(layers.Conv2DTranspose(128, kernel_size=(4, 4), strides=(2, 2), padding="same", use_bias=False))
-    print(model.output_shape)
-    model.add(layers.BatchNormalization())
-    model.add(layers.Dropout(.5))
-    model.add(layers.LeakyReLU())
+def upsample(filters, kernel_size, strides, dropout):
+    layer = tf.keras.Sequential()
+    layer.add(tf.keras.layers.Conv2DTranspose(filters, kernel_size=kernel_size, strides=strides, padding="same",
+                                              use_bias=False))
+    layer.add(tf.keras.layers.BatchNormalization())
 
-    model.add(layers.Conv2DTranspose(3, kernel_size=(4, 4), strides=(2, 2), padding="same", use_bias=False,
-                                     activation="tanh"))
-    print(model.output_shape)
-    assert model.output_shape == (None, 152, 152, 3)
+    if dropout:
+        layer.add(tf.keras.layers.Dropout(0.5))
+
+    layer.add(tf.keras.layers.LeakyReLU())
+
+    return layer
+
+
+def new_generator():
+    inp = tf.keras.layers.Input(shape=[128, 128, 1])
+
+    down_stack = [
+        downsample(64, (4, 4), (2, 2), batchnorm=False),
+        downsample(128, (4, 4), (2, 2)),
+        downsample(256, (4, 4), (2, 2)),
+        downsample(256, (4, 4), (2, 2))
+    ]
+
+    up_stack = [
+        upsample(256, (4, 4), (2, 2), True),
+        upsample(128, (4, 4), (2, 2), False),
+        upsample(64, (4, 4), (2, 2), False)
+    ]
+
+    output = tf.keras.layers.Conv2DTranspose(3, kernel_size=(4, 4), strides=(2, 2), padding="same", activation="tanh")
+
+    x = inp
+    skips = []
+    for down in down_stack:
+        x = down(x)
+        skips.append(x)
+
+    skips = reversed(skips[:-1])
+
+    for up, skip in zip(up_stack, skips):
+        x = up(x)
+        x = tf.keras.layers.Concatenate()([x, skip])
+
+    x = output(x)
+
+    model = tf.keras.Model(inputs=inp, outputs=x)
+
+    #tf.keras.utils.plot_model(model, to_file="gen.png", show_shapes=True, dpi=64)
 
     return model
 
 
 def new_discriminator():
-    model = tf.keras.Sequential()
 
-    inp = tf.keras.layers.Input(shape=[152, 152, 3], name='input_image')
-    tar = tf.keras.layers.Input(shape=[152, 152, 3], name='target_image')
+    inp = tf.keras.layers.Input(shape=[128, 128, 1], name="input_image")
+    tar = tf.keras.layers.Input(shape=[128, 128, 3], name="target_image")
 
-    model.add(tf.keras.layers.concatenate([inp, tar]))
-    model.add(layers.Conv2D(32, kernel_size=(4, 4), strides=(2, 2), padding="same", use_bias=False))
-    model.add(layers.LeakyReLU())
+    input_layer = tf.keras.layers.concatenate([inp, tar])
 
-    model.add(layers.Conv2D(64, kernel_size=(4, 4), strides=(2, 2), padding="same", use_bias=False))
-    model.add(layers.BatchNormalization())
-    model.add(layers.LeakyReLU())
+    c1 = downsample(32, (4, 4), (2, 2))(input_layer)
+    c2 = downsample(64, (4, 4), (2, 2))(c1)
+    c3 = downsample(128, (4, 4), (2, 2))(c2)
 
-    model.add(layers.Conv2D(128, kernel_size=(4, 4), strides=(2, 2), padding="same", use_bias=False))
-    model.add(layers.BatchNormalization())
-    model.add(layers.LeakyReLU())
+    zero_pad_1 = tf.keras.layers.ZeroPadding2D()(c3)
+    c4 = downsample(256, (4, 4), (1, 1))(zero_pad_1)
 
-    model.add(layers.ZeroPadding2D())
+    zero_pad_2 = tf.keras.layers.ZeroPadding2D()(c4)
 
-    model.add(layers.Conv2D(1, kernel_size=(4, 4), strides=(1, 1)))
+    output = tf.keras.layers.Conv2D(1, kernel_size=(4, 4), strides=(1, 1))(zero_pad_2)
 
-    return model
+    model = tf.keras.Model(inputs=[inp, tar], outputs=output)
 
-
-def create_discriminator():
-    model = tf.keras.Sequential()
-    model.add(layers.Conv2D(32, kernel_size=(4, 4), strides=(2, 2), padding="same", input_shape=(152, 150, 3)))
-    model.add(layers.LeakyReLU())
-
-    model.add(layers.Conv2D(64, kernel_size=(4, 4), strides=(2, 2), padding="same", use_bias=False))
-    model.add(layers.BatchNormalization())
-    model.add(layers.LeakyReLU())
-
-    model.add(layers.Conv2D(128, kernel_size=(4, 4), strides=(2, 2), padding="same"))
-    model.add(layers.BatchNormalization())
-    model.add(layers.LeakyReLU())
-
-    model.add(layers.Flatten())
-
-    model.add(layers.Dense(2048))
-    model.add(layers.BatchNormalization())
-    model.add(layers.LeakyReLU())
-
-    model.add(layers.Dense(512))
-    model.add(layers.BatchNormalization())
-    model.add(layers.LeakyReLU())
-
-    model.add(layers.Dense(1, activation="sigmoid"))
+    #tf.keras.utils.plot_model(model, to_file="disc.png", show_shapes=True, dpi=64)
 
     return model
 
+
+def normalize(img):
+
+  img = (img / 127.5) - 1
+
+  return img
 
 def main():
     ds = tf.keras.preprocessing.image_dataset_from_directory("data/seg_train/forest",
                                                              label_mode=None,
                                                              batch_size=BATCH_SIZE,
-                                                             image_size=(152, 152))
+                                                             image_size=(128, 128))
 
-    generator = create_generator()
+
+    ds = ds.map(normalize)
+    generator = new_generator()
     discriminator = new_discriminator()
     learning_rate = 2e-4
     g_optimizer = tf.keras.optimizers.Adam(learning_rate)
@@ -114,12 +120,12 @@ def main():
 
 
 if __name__ == "__main__":
-    #physical_devices = tf.config.list_physical_devices("GPU")
-    #tf.config.experimental.set_memory_growth(physical_devices[0], True)
-    #tf.config.run_functions_eagerly(True)
+    physical_devices = tf.config.list_physical_devices("GPU")
+    tf.config.experimental.set_memory_growth(physical_devices[0], True)
+    tf.config.run_functions_eagerly(True)
 
-    image_width = 150
-    image_height = 150
+    image_width = 128
+    image_height = 128
     BATCH_SIZE = 32
 
     main()
