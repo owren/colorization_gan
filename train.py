@@ -27,8 +27,9 @@ def generator_loss(disc_gen_output, gen_output, real_output):
 @tf.function
 def train_step(generator, discriminator, images):
     with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
-        grayscale_batch = tf.image.rgb_to_grayscale(images)
+        grayscale_batch =  images[:, :, :, :1]
         generated_image = generator(grayscale_batch, training=True)
+        generated_image = tf.concat([grayscale_batch, generated_image], axis=3)
 
         real_output = discriminator([grayscale_batch, images], training=True)
         gen_output = discriminator([grayscale_batch, generated_image], training=True)
@@ -63,15 +64,22 @@ def convert_random(epoch, discriminator, generator):
     rgb_image_tensor = tf.keras.preprocessing.image.img_to_array(rgb_image)
     rgb_image_tensor = tf.expand_dims(rgb_image_tensor, axis=0)
     grayscale_image = tf.image.rgb_to_grayscale(rgb_image_tensor)
+    grayscale_image_normalized = (grayscale_image - 127.5) / 127.5
 
-    gen_image = generator(grayscale_image, training=False)
-    images = [rgb_image, gen_image[0, ...], (gen_image[0] * 127.5) + 127.5]
+    gen_image = generator(grayscale_image_normalized, training=False)
+    gen_image = tf.concat([grayscale_image_normalized, gen_image], axis=3)
+    gen_image = tf.image.yuv_to_rgb(gen_image)
+    images = [rgb_image, grayscale_image[0, ...], gen_image[0, ...]]
 
     fig = plt.figure()
     for i in range(3):
         fig.add_subplot(1, 3, i + 1)
         plt.axis("off")
-        plt.imshow(images[i])
+
+        if i == 1:
+            plt.imshow(images[i], cmap="gray")
+        else:
+            plt.imshow(images[i])
 
     plt.text(-140, -45, "Epoch: " + str(epoch), fontsize=18)
     plt.show()

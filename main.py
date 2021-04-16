@@ -47,7 +47,7 @@ def create_generator():
         upsample(64, (4, 4), (2, 2))
     ]
 
-    output = tf.keras.layers.Conv2DTranspose(3, kernel_size=(4, 4), strides=(2, 2), padding="same", activation="tanh")
+    output = tf.keras.layers.Conv2DTranspose(2, kernel_size=(4, 4), strides=(2, 2), padding="same", activation="tanh")
 
     x = inp
     skips = []
@@ -95,7 +95,8 @@ def create_discriminator():
 
 
 def normalize(img):
-    return(img / 127.5) - 1
+    img = (img - 127.5) / 127.5
+    return tf.image.rgb_to_yuv(img)
 
 
 def main():
