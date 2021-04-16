@@ -69,17 +69,13 @@ def convert_random(epoch, discriminator, generator):
     gen_image = generator(grayscale_image_normalized, training=False)
     gen_image = tf.concat([grayscale_image_normalized, gen_image], axis=3)
     gen_image = tf.image.yuv_to_rgb(gen_image)
-    images = [rgb_image, grayscale_image[0, ...], gen_image[0, ...]]
+    images = [rgb_image, gen_image[0, ...]]
 
     fig = plt.figure()
-    for i in range(3):
-        fig.add_subplot(1, 3, i + 1)
+    for i in range(len(images)):
+        fig.add_subplot(1, 2, i + 1)
         plt.axis("off")
+        plt.imshow(images[i])
 
-        if i == 1:
-            plt.imshow(images[i], cmap="gray")
-        else:
-            plt.imshow(images[i])
-
-    plt.text(-140, -45, "Epoch: " + str(epoch), fontsize=18)
+    plt.text(-45, -45, "Epoch: " + str(epoch), fontsize=18)
     plt.show()
