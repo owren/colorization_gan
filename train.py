@@ -12,16 +12,22 @@ def discriminator_loss(real_output, gen_output):
     real_loss = cross_entropy(tf.ones_like(real_output), real_output)
     gen_loss = cross_entropy(tf.zeros_like(gen_output), gen_output)
     total_loss = real_loss + gen_loss
+
+    print("disc loss: " + str(total_loss) )
     return total_loss
 
 
 def generator_loss(disc_gen_output, gen_output, real_output):
-    gan_loss = cross_entropy(tf.ones_like(disc_gen_output), disc_gen_output)
+    gen_loss = cross_entropy(tf.ones_like(disc_gen_output), disc_gen_output)
 
-    l1_loss = tf.reduce_mean(tf.abs(real_output - gen_output))
+    l1_abs = tf.abs(real_output - gen_output)
+    l1_loss = tf.reduce_mean(l1_abs)
 
-    total_loss = gan_loss + (100 * l1_loss)
-    return total_loss
+    gen_total_loss = gen_loss + (100 * l1_loss)
+
+    print("gen loss: " + str(gen_loss))
+    print("rmse loss: " + str(l1_loss * 100))
+    return gen_total_loss, gen_loss, l1_loss
 
 
 @tf.function
@@ -34,10 +40,10 @@ def train_step(generator, discriminator, images):
         real_output = discriminator([grayscale_batch, images], training=True)
         gen_output = discriminator([grayscale_batch, generated_image], training=True)
 
-        gen_loss = generator_loss(gen_output, generated_image, images)
+        gen_total_loss, gen_loss, l1_loss = generator_loss(gen_output, generated_image, images)
         disc_loss = discriminator_loss(real_output, gen_output)
 
-    gradients_of_generator = gen_tape.gradient(gen_loss, generator.trainable_variables)
+    gradients_of_generator = gen_tape.gradient(gen_total_loss, generator.trainable_variables)
     gradients_of_discriminator = disc_tape.gradient(disc_loss, discriminator.trainable_variables)
 
     g_optimizer.apply_gradients(zip(gradients_of_generator, generator.trainable_variables))
@@ -71,6 +77,9 @@ def convert_random(epoch, discriminator, generator):
     gen_image = tf.image.yuv_to_rgb(gen_image)
     images = [rgb_image, gen_image[0, ...]]
 
+    yuv_image = tf.image.rgb_to_yuv(rgb_image_tensor)
+    tmp = discriminator([grayscale_image, gen_image]).numpy()
+
     fig = plt.figure()
     for i in range(len(images)):
         fig.add_subplot(1, 2, i + 1)
@@ -79,3 +88,12 @@ def convert_random(epoch, discriminator, generator):
 
     plt.text(-45, -45, "Epoch: " + str(epoch), fontsize=18)
     plt.show()
+
+
+def plot_loss(losses):
+
+    fig = plt.figure()
+
+    for i in range(len(losses)):
+        fig.add_subplut(2, 2, i + 1)
+        plt.show()

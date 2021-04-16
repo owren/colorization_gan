@@ -2,7 +2,7 @@ import tensorflow as tf
 import os
 import random
 
-
+'''
 def normalize(img):
     return(img - 127.5) / 127.5
 
@@ -27,3 +27,10 @@ yuv_tensor = tf.concat([grayscale_tensor, yuv_no_grayscale], axis=2)
 yuv_numpy = yuv_tensor.numpy()
 
 print("x")
+'''
+
+cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
+x = tf.constant([0., 1.])
+ones = tf.ones_like(x)
+loss = cross_entropy(ones, x)
+print(loss)
