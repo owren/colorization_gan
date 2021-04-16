@@ -7,7 +7,11 @@ from config import *
 
 def downsample(filters, kernel_size, strides, batchnorm=True):
     layer = tf.keras.Sequential()
-    layer.add(tf.keras.layers.Conv2D(filters, kernel_size=kernel_size, strides=strides, padding="same", use_bias=False))
+    layer.add(tf.keras.layers.Conv2D(filters,
+                                     kernel_size=kernel_size,
+                                     strides=strides,
+                                     padding="same",
+                                     use_bias=False))
 
     if batchnorm:
         layer.add(tf.keras.layers.BatchNormalization())
@@ -19,8 +23,12 @@ def downsample(filters, kernel_size, strides, batchnorm=True):
 
 def upsample(filters, kernel_size, strides, dropout=False):
     layer = tf.keras.Sequential()
-    layer.add(tf.keras.layers.Conv2DTranspose(filters, kernel_size=kernel_size, strides=strides, padding="same",
+    layer.add(tf.keras.layers.Conv2DTranspose(filters,
+                                              kernel_size=kernel_size,
+                                              strides=strides,
+                                              padding="same",
                                               use_bias=False))
+
     layer.add(tf.keras.layers.BatchNormalization())
 
     if dropout:
@@ -31,6 +39,7 @@ def upsample(filters, kernel_size, strides, dropout=False):
     return layer
 
 
+# TODO: Possible to move concate of grayscale and YUV variables to the model?
 def create_generator():
     inp = tf.keras.layers.Input(shape=[HEIGHT, WIDTH, 1])
 
@@ -47,7 +56,12 @@ def create_generator():
         upsample(64, (4, 4), (2, 2))
     ]
 
-    output = tf.keras.layers.Conv2DTranspose(2, kernel_size=(4, 4), strides=(2, 2), padding="same", activation="tanh")
+    output = tf.keras.layers.Conv2DTranspose(2,
+                                             kernel_size=(4, 4),
+                                             strides=(2, 2),
+                                             padding="same",
+                                             use_bias=False,
+                                             activation="tanh")
 
     x = inp
     skips = []
@@ -85,7 +99,7 @@ def create_discriminator():
 
     zero_pad_2 = tf.keras.layers.ZeroPadding2D()(c4)
 
-    output = tf.keras.layers.Conv2D(1, kernel_size=(4, 4), strides=(1, 1))(zero_pad_2)
+    output = tf.keras.layers.Conv2D(1, kernel_size=(4, 4), strides=(1, 1), padding="same", use_bias=False)(zero_pad_2)
 
     model = tf.keras.Model(inputs=[inp, tar], outputs=output)
 
@@ -100,7 +114,6 @@ def normalize(img):
 
 
 def main():
-
     ds = tf.keras.preprocessing.image_dataset_from_directory("data/seg_train/forest",
                                                              label_mode=None,
                                                              batch_size=BATCH_SIZE,

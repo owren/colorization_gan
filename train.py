@@ -44,9 +44,9 @@ def train_step(generator, discriminator, images):
     d_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
 
 
-def train(generator, discriminator, dataset, epochs=10000):
+def train(generator, discriminator, dataset):
     convert_random(-1, discriminator, generator)
-    for epoch in range(epochs):
+    for epoch in range(EPOCHS):
         start = time.time()
 
         for image_batch in dataset:
