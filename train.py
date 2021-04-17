@@ -1,46 +1,72 @@
-import os
-import random
-
 import tensorflow as tf
 import time
-import matplotlib.pyplot as plt
-import numpy as np
 from config import *
+from plotting import plot_one
 
 
-def discriminator_loss(real_output, gen_output):
-    real_loss = cross_entropy(tf.ones_like(real_output), real_output)
-    gen_loss = cross_entropy(tf.zeros_like(gen_output), gen_output)
+def discriminator_loss(disc_real_output, disc_gen_output):
+    """Calculate the loss of the discriminator.
+
+    Args:
+        disc_real_output: A tensor which represent the discriminator output when input the real image.
+        disc_gen_output:A tensor which represent the discriminator output when input the generated image.
+
+    Returns:
+        The total loss of the discrminiator
+    """
+    real_loss = cross_entropy(tf.ones_like(disc_gen_output), disc_gen_output)
+    gen_loss = cross_entropy(tf.zeros_like(disc_real_output), disc_real_output)
     total_loss = real_loss + gen_loss
 
-    print("disc loss: " + str(total_loss) )
     return total_loss
 
 
-def generator_loss(disc_gen_output, gen_output, real_output):
+def generator_loss(disc_gen_output, generated_image, real_image):
+    """Calculate the loss of the generator.
+
+    Args:
+        disc_gen_output: A tensor which represent the patch output of the discriminator.
+        generated_image: A tensor which represent the generated image with only the UV channels.
+        real_image: A tensor which represent the real image with only the UV channels.
+
+    Returns:
+        The total loss of the generator, the loss from the discriminator, and the
+        rmse loss when comparing to the real image.
+    """
     gen_loss = cross_entropy(tf.ones_like(disc_gen_output), disc_gen_output)
 
-    l1_abs = tf.abs(real_output - gen_output)
+    l1_abs = tf.abs(real_image - generated_image)
     l1_loss = tf.reduce_mean(l1_abs)
 
     gen_total_loss = gen_loss + (10 * l1_loss)
 
-    print("gen loss: " + str(gen_loss))
-    print("rmse loss: " + str(l1_loss * 10))
     return gen_total_loss, gen_loss, l1_loss
 
 
 @tf.function
 def train_step(generator, discriminator, images):
+    """Performs one train step on the GAN by using one batch from the dataset.
+
+    Uses GradientTape to perform backpropagation one step each at the discriminiator and generator.
+
+    Args:
+        generator: A Keras Model which represent the Generator of the GAN.
+        discriminator: A Keras Model which represent the Discrminiator of the GAN.
+        images: A image batch from the tensorflow dataset.
+    """
     with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
         grayscale_batch =  images[..., :1]
+
+        # The UV output of the generator has a range between (-1, 1),
+        # however the UV range in the dataset is (-0.5, 0.5), therefore
+        # the generated image output is divided by 2.
         generated_image = generator(grayscale_batch, training=True) / 2
 
-        real_output = discriminator([grayscale_batch, images[..., 1:]], training=True)
-        gen_output = discriminator([grayscale_batch, generated_image], training=True)
+        disc_real_output = discriminator([grayscale_batch, images[..., 1:]], training=True)
+        disc_gen_output = discriminator([grayscale_batch, generated_image], training=True)
 
-        gen_total_loss, gen_loss, l1_loss = generator_loss(gen_output, generated_image, images[..., 1:])
-        disc_loss = discriminator_loss(real_output, gen_output)
+        gen_total_loss, gen_loss, l1_loss = generator_loss(disc_gen_output, generated_image, images[..., 1:])
+        disc_loss = discriminator_loss(disc_real_output, disc_gen_output)
 
     gradients_of_generator = gen_tape.gradient(gen_total_loss, generator.trainable_variables)
     gradients_of_discriminator = disc_tape.gradient(disc_loss, discriminator.trainable_variables)
@@ -50,49 +76,24 @@ def train_step(generator, discriminator, images):
 
 
 def train(generator, discriminator, dataset):
-    convert_random(-1, discriminator, generator)
+    """Begins the training process of the GAN.
+
+    Itereates through the total number of epochs and apply a trainstep on the GAN for each
+    batch in the dataset.
+
+    Args:
+        generator: A Keras Model which represent the Generator of the GAN.
+        discriminator: A Keras Model which represent the Discrminiator of the GAN.
+        dataset: A tensorflow dataset.
+    """
+    plot_one(-1, generator)
     for epoch in range(EPOCHS):
         start = time.time()
-
         for image_batch in dataset:
             train_step(generator, discriminator, image_batch)
 
-        print("Time for epoch {} is {} sec".format(epoch + 1, time.time() - start))
-        convert_random(epoch, discriminator, generator)
+        print("Epoch " + str(epoch + 1) + ": " + str(round(time.time() - start, 3)) + " seconds")
+
+        plot_one(epoch, generator)
 
 
-def convert_random(epoch, discriminator, generator):
-    filename = random.choice(os.listdir("data/seg_train/forest/sub"))
-    path = "data/seg_train/forest/sub/" + filename
-
-    rgb_image = tf.keras.preprocessing.image.load_img(path, target_size=(HEIGHT, WIDTH))
-    rgb_image_tensor = tf.keras.preprocessing.image.img_to_array(rgb_image)
-    rgb_image_tensor = tf.expand_dims(rgb_image_tensor, axis=0)
-    grayscale_image = tf.image.rgb_to_grayscale(rgb_image_tensor)
-    grayscale_image_normalized = grayscale_image / 255.
-
-    gen_image = generator(grayscale_image_normalized, training=False) / 2
-    gen_image = tf.concat([grayscale_image_normalized, gen_image], axis=3)
-    gen_image = tf.image.yuv_to_rgb(gen_image)
-    images = [rgb_image, gen_image[0, ...]]
-
-    yuv_image = (tf.image.rgb_to_yuv(rgb_image_tensor) - 127.5) / 127.5
-    #tmp = discriminator([grayscale_image, gen_image]).numpy()
-
-    fig = plt.figure()
-    for i in range(len(images)):
-        fig.add_subplot(1, len(images), i + 1)
-        plt.axis("off")
-        plt.imshow(images[i])
-
-    plt.text(-45, -45, "Epoch: " + str(epoch), fontsize=18)
-    plt.show()
-
-
-def plot_loss(losses):
-
-    fig = plt.figure()
-
-    for i in range(len(losses)):
-        fig.add_subplut(2, 2, i + 1)
-        plt.show()

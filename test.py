@@ -3,6 +3,7 @@ import os
 import random
 import matplotlib.pyplot as plt
 
+# Irrelevant test file
 
 filename = random.choice(os.listdir("data/seg_train/forest/sub"))
 path = "data/seg_train/forest/sub/" + filename
@@ -17,9 +18,7 @@ u = yuv_image[..., 1]
 v = yuv_image[..., 2]
 
 
-yuv_to_rgb = tf.image.yuv_to_rgb(yuv_image)
-
-images = [rgb_image, yuv_to_rgb]
+images = [rgb_image]
 
 fig = plt.figure()
 for i in range(len(images)):
