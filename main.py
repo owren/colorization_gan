@@ -5,7 +5,7 @@ from train import *
 
 
 def normalize(img):
-    img = (img - 127.5) / 127.5
+    img /= 255.
     return tf.image.rgb_to_yuv(img)
 
 
@@ -13,6 +13,7 @@ def main():
     ds = tf.keras.preprocessing.image_dataset_from_directory("data/seg_train/forest",
                                                              label_mode=None,
                                                              batch_size=BATCH_SIZE,
+                                                             color_mode="rgb",
                                                              image_size=(HEIGHT, WIDTH))
     ds.shuffle(100)
     ds = ds.map(normalize)

@@ -75,14 +75,14 @@ def create_generator():
 
     model = tf.keras.Model(inputs=inp, outputs=x)
 
-    # tf.keras.utils.plot_model(model, to_file="gen.png", show_shapes=True, dpi=64)
+    tf.keras.utils.plot_model(model, to_file="gen.png", show_shapes=True, dpi=64)
 
     return model
 
 
 def create_discriminator():
     inp = tf.keras.layers.Input(shape=[HEIGHT, WIDTH, 1], name="input_image")
-    tar = tf.keras.layers.Input(shape=[HEIGHT, WIDTH, 3], name="target_image")
+    tar = tf.keras.layers.Input(shape=[HEIGHT, WIDTH, 2], name="target_image")
 
     input_layer = tf.keras.layers.concatenate([inp, tar])
 
@@ -100,6 +100,7 @@ def create_discriminator():
                                     kernel_size=(4, 4),
                                     strides=(1, 1),
                                     padding="same",
+                                    activation="sigmoid",
                                     use_bias=False)(zero_pad_2)
 
     model = tf.keras.Model(inputs=[inp, tar], outputs=output)

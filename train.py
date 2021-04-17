@@ -23,24 +23,23 @@ def generator_loss(disc_gen_output, gen_output, real_output):
     l1_abs = tf.abs(real_output - gen_output)
     l1_loss = tf.reduce_mean(l1_abs)
 
-    gen_total_loss = gen_loss + (100 * l1_loss)
+    gen_total_loss = gen_loss + (10 * l1_loss)
 
     print("gen loss: " + str(gen_loss))
-    print("rmse loss: " + str(l1_loss * 100))
+    print("rmse loss: " + str(l1_loss * 10))
     return gen_total_loss, gen_loss, l1_loss
 
 
 @tf.function
 def train_step(generator, discriminator, images):
     with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
-        grayscale_batch =  images[:, :, :, :1]
-        generated_image = generator(grayscale_batch, training=True)
-        generated_image = tf.concat([grayscale_batch, generated_image], axis=3)
+        grayscale_batch =  images[..., :1]
+        generated_image = generator(grayscale_batch, training=True) / 2
 
-        real_output = discriminator([grayscale_batch, images], training=True)
+        real_output = discriminator([grayscale_batch, images[..., 1:]], training=True)
         gen_output = discriminator([grayscale_batch, generated_image], training=True)
 
-        gen_total_loss, gen_loss, l1_loss = generator_loss(gen_output, generated_image, images)
+        gen_total_loss, gen_loss, l1_loss = generator_loss(gen_output, generated_image, images[..., 1:])
         disc_loss = discriminator_loss(real_output, gen_output)
 
     gradients_of_generator = gen_tape.gradient(gen_total_loss, generator.trainable_variables)
@@ -70,19 +69,19 @@ def convert_random(epoch, discriminator, generator):
     rgb_image_tensor = tf.keras.preprocessing.image.img_to_array(rgb_image)
     rgb_image_tensor = tf.expand_dims(rgb_image_tensor, axis=0)
     grayscale_image = tf.image.rgb_to_grayscale(rgb_image_tensor)
-    grayscale_image_normalized = (grayscale_image - 127.5) / 127.5
+    grayscale_image_normalized = grayscale_image / 255.
 
-    gen_image = generator(grayscale_image_normalized, training=False)
+    gen_image = generator(grayscale_image_normalized, training=False) / 2
     gen_image = tf.concat([grayscale_image_normalized, gen_image], axis=3)
     gen_image = tf.image.yuv_to_rgb(gen_image)
     images = [rgb_image, gen_image[0, ...]]
 
-    yuv_image = tf.image.rgb_to_yuv(rgb_image_tensor)
-    tmp = discriminator([grayscale_image, gen_image]).numpy()
+    yuv_image = (tf.image.rgb_to_yuv(rgb_image_tensor) - 127.5) / 127.5
+    #tmp = discriminator([grayscale_image, gen_image]).numpy()
 
     fig = plt.figure()
     for i in range(len(images)):
-        fig.add_subplot(1, 2, i + 1)
+        fig.add_subplot(1, len(images), i + 1)
         plt.axis("off")
         plt.imshow(images[i])
 
