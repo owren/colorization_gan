@@ -14,9 +14,11 @@ def discriminator_loss(disc_real_output, disc_gen_output):
     Returns:
         The total loss of the discrminiator
     """
-    real_loss = cross_entropy(tf.ones_like(disc_gen_output), disc_gen_output)
-    gen_loss = cross_entropy(tf.zeros_like(disc_real_output), disc_real_output)
+    gen_loss = cross_entropy(tf.zeros_like(disc_gen_output), disc_gen_output)
+    real_loss = cross_entropy(tf.ones_like(disc_real_output), disc_real_output)
     total_loss = real_loss + gen_loss
+
+    print("disc loss: " + str(total_loss))
 
     return total_loss
 
@@ -40,6 +42,8 @@ def generator_loss(disc_gen_output, generated_image, real_image):
 
     gen_total_loss = gen_loss + (10 * l1_loss)
 
+    print("gen loss: " + str(gen_total_loss))
+
     return gen_total_loss, gen_loss, l1_loss
 
 
@@ -56,16 +60,14 @@ def train_step(generator, discriminator, images):
     """
     with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
         grayscale_batch =  images[..., :1]
+        uv_batch = images[..., 1:]
 
-        # The UV output of the generator has a range between (-1, 1),
-        # however the UV range in the dataset is (-0.5, 0.5), therefore
-        # the generated image output is divided by 2.
-        generated_image = generator(grayscale_batch, training=True) / 2
+        generated_image = generator(grayscale_batch, training=True)
 
-        disc_real_output = discriminator([grayscale_batch, images[..., 1:]], training=True)
+        disc_real_output = discriminator([grayscale_batch, uv_batch], training=True)
         disc_gen_output = discriminator([grayscale_batch, generated_image], training=True)
 
-        gen_total_loss, gen_loss, l1_loss = generator_loss(disc_gen_output, generated_image, images[..., 1:])
+        gen_total_loss, gen_loss, l1_loss = generator_loss(disc_gen_output, generated_image, uv_batch)
         disc_loss = discriminator_loss(disc_real_output, disc_gen_output)
 
     gradients_of_generator = gen_tape.gradient(gen_total_loss, generator.trainable_variables)

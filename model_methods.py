@@ -9,6 +9,7 @@ def downsample(filters, kernel_size, strides, batchnorm=True):
         kernel_size: An integer pair of the kernel size.
         strides: An integerp pair of the stride size.
         batchnorm: A boolean indicating if Batch Normalization should be enabled.
+
     Returns:
         A sequential model which consists of a Convolutional layer, a Batch Normalization layer
         (if enabled), and a Leakyrelu layer.
@@ -36,6 +37,7 @@ def upsample(filters, kernel_size, strides, dropout=False):
         kernel_size: An integer pair of the kernel size.
         strides: An integerp pair of the stride size.
         dropout: A boolean indicating if dropout should be enabled.
+
     Returns:
         A sequential model which consists of a Convolutional Tranpose layer, a Batch Normalization layer,
         a Dropout layer (if enabled), and a Leakyrelu layer.

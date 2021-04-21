@@ -43,6 +43,6 @@ def create_generator():
     model = tf.keras.Model(inputs=inp, outputs=x)
 
     # Uncomment to visualize the model
-    # tf.keras.utils.plot_model(model, to_file="gen.png", show_shapes=True, dpi=64)
+    tf.keras.utils.plot_model(model, to_file="gen.png", show_shapes=True, dpi=64)
 
     return model

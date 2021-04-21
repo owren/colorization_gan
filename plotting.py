@@ -4,6 +4,19 @@ from config import *
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
+from main import yuv_cast
+
+
+def load_one_img():
+    filename = random.choice(os.listdir("data/seg_train/forest/sub"))
+    path = "data/seg_train/forest/sub/" + filename
+
+    rgb_image = tf.keras.preprocessing.image.load_img(path, target_size=(HEIGHT, WIDTH))
+    rgb_image_tensor = tf.keras.preprocessing.image.img_to_array(rgb_image)
+    rgb_image_tensor = tf.expand_dims(rgb_image_tensor, axis=0)
+
+    return rgb_image_tensor
+
 
 def plot_one(epoch, generator):
     """Plot a real image and a generated image from the grayscale version.
@@ -12,19 +25,21 @@ def plot_one(epoch, generator):
         epoch: Integer inidicating the current epoch.
         generator: The keras generator model.
     """
-    filename = random.choice(os.listdir("data/seg_train/forest/sub"))
-    path = "data/seg_train/forest/sub/" + filename
 
-    rgb_image = tf.keras.preprocessing.image.load_img(path, target_size=(HEIGHT, WIDTH))
-    rgb_image_tensor = tf.keras.preprocessing.image.img_to_array(rgb_image)
-    rgb_image_tensor = tf.expand_dims(rgb_image_tensor, axis=0)
-    grayscale_image = tf.image.rgb_to_grayscale(rgb_image_tensor)
-    grayscale_image_normalized = grayscale_image / 255.
+    rgb_image_tensor = load_one_img()
+    rgb_image_tensor /= 255.
 
-    gen_image = generator(grayscale_image_normalized, training=False) / 2
-    gen_image = tf.concat([grayscale_image_normalized, gen_image], axis=3)
-    gen_image = tf.image.yuv_to_rgb(gen_image)
-    images = [rgb_image, gen_image[0, ...]]
+    yuv_img = tf.image.rgb_to_yuv(rgb_image_tensor)
+    y_channel = yuv_img[..., :1]
+
+    uv_channel = generator(y_channel, training=False)
+    uv_channel /= 2
+    numpy_check = uv_channel.numpy()
+
+    yuv_from_gen = tf.concat([y_channel, uv_channel], axis=3)
+    rgb_from_gen = tf.image.yuv_to_rgb(yuv_from_gen)
+
+    images = [rgb_image_tensor[0, ...], rgb_from_gen[0, ...]]
 
     fig = plt.figure()
     for i in range(len(images)):
@@ -34,3 +49,9 @@ def plot_one(epoch, generator):
 
     plt.text(-45, -45, "Epoch: " + str(epoch), fontsize=18)
     plt.show()
+
+    mean = tf.math.reduce_mean(uv_channel[0, ...])
+    std = tf.math.reduce_std(uv_channel[0, ...])
+
+    print("mean: " + str(mean))
+    print("std: " + str(std))
