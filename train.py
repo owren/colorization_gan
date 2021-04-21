@@ -1,7 +1,7 @@
 import tensorflow as tf
 import time
 from config import *
-from plotting import plot_one
+from plotting import plot_one, print_loss
 
 
 def discriminator_loss(disc_real_output, disc_gen_output):
@@ -18,9 +18,7 @@ def discriminator_loss(disc_real_output, disc_gen_output):
     real_loss = cross_entropy(tf.ones_like(disc_real_output), disc_real_output)
     total_loss = real_loss + gen_loss
 
-    print("disc loss: " + str(total_loss))
-
-    return total_loss
+    return total_loss, gen_loss, real_loss
 
 
 def generator_loss(disc_gen_output, generated_image, real_image):
@@ -39,11 +37,9 @@ def generator_loss(disc_gen_output, generated_image, real_image):
 
     l1_abs = tf.abs(real_image - generated_image)
     l1_loss = tf.reduce_mean(l1_abs)
+    l1_loss *= 10
 
-    gen_total_loss = gen_loss + (10 * l1_loss)
-
-    print("gen loss: " + str(gen_total_loss))
-
+    gen_total_loss = gen_loss + l1_loss
     return gen_total_loss, gen_loss, l1_loss
 
 
@@ -68,13 +64,15 @@ def train_step(generator, discriminator, images):
         disc_gen_output = discriminator([grayscale_batch, generated_image], training=True)
 
         gen_total_loss, gen_loss, l1_loss = generator_loss(disc_gen_output, generated_image, uv_batch)
-        disc_loss = discriminator_loss(disc_real_output, disc_gen_output)
+        disc_total_loss, disc_gen_loss, disc_real_loss = discriminator_loss(disc_real_output, disc_gen_output)
 
     gradients_of_generator = gen_tape.gradient(gen_total_loss, generator.trainable_variables)
-    gradients_of_discriminator = disc_tape.gradient(disc_loss, discriminator.trainable_variables)
+    gradients_of_discriminator = disc_tape.gradient(disc_total_loss, discriminator.trainable_variables)
 
     g_optimizer.apply_gradients(zip(gradients_of_generator, generator.trainable_variables))
     d_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
+
+    return gen_total_loss, gen_loss, l1_loss, disc_total_loss, disc_gen_loss, disc_real_loss
 
 
 def train(generator, discriminator, dataset):
@@ -88,13 +86,17 @@ def train(generator, discriminator, dataset):
         discriminator: A Keras Model which represent the Discrminiator of the GAN.
         dataset: A tensorflow dataset.
     """
+
     plot_one(-1, generator)
     for epoch in range(EPOCHS):
+        losses = []
         start = time.time()
         for image_batch in dataset:
-            train_step(generator, discriminator, image_batch)
+            loss = train_step(generator, discriminator, image_batch)
+            losses.append(loss)
 
         print("Epoch " + str(epoch + 1) + ": " + str(round(time.time() - start, 3)) + " seconds")
+        print_loss(losses)
 
         plot_one(epoch, generator)
 

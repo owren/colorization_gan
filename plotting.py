@@ -3,8 +3,20 @@ import random
 from config import *
 import tensorflow as tf
 import matplotlib.pyplot as plt
+import numpy as np
 
-from main import yuv_cast
+
+def print_loss(losses):
+    np_arr = np.array(losses)
+    losses_sum = np.sum(np_arr, axis=0)
+
+    print("Gen total loss: " + str(losses_sum[0]))
+    print("Gen loss: " + str(losses_sum[1]))
+    print("L1 loss: " + str(losses_sum[2]))
+
+    print("Disc total loss: " + str(losses_sum[3]))
+    print("Disc Gen loss: " + str(losses_sum[4]))
+    print("Disc Real loss: " + str(losses_sum[5]))
 
 
 def load_one_img():
@@ -53,5 +65,5 @@ def plot_one(epoch, generator):
     mean = tf.math.reduce_mean(uv_channel[0, ...])
     std = tf.math.reduce_std(uv_channel[0, ...])
 
-    print("mean: " + str(mean))
-    print("std: " + str(std))
+    #print("mean: " + str(mean))
+    #print("std: " + str(std))
