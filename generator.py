@@ -10,12 +10,18 @@ def create_generator():
         downsample(64, (4, 4), (2, 2), batchnorm=False),
         downsample(128, (4, 4), (2, 2)),
         downsample(256, (4, 4), (2, 2)),
-        downsample(256, (4, 4), (2, 2))
+        downsample(512, (4, 4), (2, 2)),
+        downsample(512, (4, 4), (2, 2)),
+        downsample(512, (4, 4), (2, 2)),
+        downsample(512, (4, 4), (2, 2)),
     ]
 
     up_stack = [
-        upsample(256, (4, 4), (2, 2), dropout=True),
-        upsample(128, (4, 4), (2, 2), dropout=True),
+        upsample(512, (4, 4), (2, 2), dropout=True),
+        upsample(512, (4, 4), (2, 2), dropout=True),
+        upsample(512, (4, 4), (2, 2)),
+        upsample(256, (4, 4), (2, 2)),
+        upsample(128, (4, 4), (2, 2)),
         upsample(64, (4, 4), (2, 2))
     ]
 

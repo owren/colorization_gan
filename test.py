@@ -4,7 +4,7 @@ import random
 import matplotlib.pyplot as plt
 
 # Irrelevant test file
-
+'''
 filename = random.choice(os.listdir("data/seg_train/forest/sub"))
 path = "data/seg_train/forest/sub/" + filename
 rgb_image = tf.keras.preprocessing.image.load_img(path, target_size=(150, 150))
@@ -37,8 +37,7 @@ plt.show()
 sigmoid_ce = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 categorical_ce = tf.keras.losses.CategoricalCrossentropy()
 true = tf.constant([1., 1., 1.])
-predict = tf.constant([1., 1., 1.])
+predict = tf.constant([0., 1., 1.])
 loss = sigmoid_ce(true, predict)
 print(loss)
 
-'''

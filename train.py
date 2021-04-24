@@ -87,7 +87,7 @@ def train(generator, discriminator, dataset):
         dataset: A tensorflow dataset.
     """
 
-    plot_one(-1, generator)
+    plot_one(-1, discriminator, generator)
     for epoch in range(EPOCHS):
         losses = []
         start = time.time()
@@ -98,6 +98,6 @@ def train(generator, discriminator, dataset):
         print("Epoch " + str(epoch + 1) + ": " + str(round(time.time() - start, 3)) + " seconds")
         print_loss(losses)
 
-        plot_one(epoch, generator)
+        plot_one(epoch, discriminator, generator)
 
 

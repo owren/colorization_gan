@@ -11,7 +11,7 @@ def yuv_cast(img):
         img: An RGB image with the ranges (0, 255)
 
     Returns:
-        An YUV image with ranges (-1, 1)
+        An YUV image with range Y: (0, 1) and UV: (-1, 1)
     """
     img /= 255.
     img = tf.image.rgb_to_yuv(img)
@@ -33,22 +33,6 @@ def main():
     ds.shuffle(100)
 
     ds = ds.map(yuv_cast)
-
-    '''
-    for img in ds:
-        img = img[0, ...]
-        y = img[..., :1].numpy()
-        uv = img[..., 1:].numpy()
-        print("x")
-
-    for img in ds:
-        img /= 255.
-        img = tf.image.rgb_to_yuv(img)
-        y = img[..., :1].numpy()
-        uv = img[..., 1:].numpy()
-        print("x")
-'''
-
 
     generator = create_generator()
     discriminator = create_discriminator()

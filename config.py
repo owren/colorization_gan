@@ -1,8 +1,8 @@
 import tensorflow as tf
 
 
-WIDTH = 160
-HEIGHT = 160
+WIDTH = 128
+HEIGHT = 128
 BATCH_SIZE = 32
 EPOCHS = 1000
 

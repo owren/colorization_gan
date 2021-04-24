@@ -30,11 +30,12 @@ def load_one_img():
     return rgb_image_tensor
 
 
-def plot_one(epoch, generator):
+def plot_one(epoch, discriminator, generator):
     """Plot a real image and a generated image from the grayscale version.
 
     Args:
         epoch: Integer inidicating the current epoch.
+        discriminator: The keras discriminator model.
         generator: The keras generator model.
     """
 
@@ -45,8 +46,14 @@ def plot_one(epoch, generator):
     y_channel = yuv_img[..., :1]
 
     uv_channel = generator(y_channel, training=False)
+
+    #disc_real_output = discriminator(y_channel, (yuv_img[..., 1:] * 2))
+    #disc_gen_output = discriminator(y_channel, uv_channel)
+
+    #real_chance = cross_entropy(tf.ones_like(disc_real_output), disc_real_output)
+    #gen_chance = cross_entropy(tf.ones_like(disc_gen_output), disc_gen_output)
+
     uv_channel /= 2
-    numpy_check = uv_channel.numpy()
 
     yuv_from_gen = tf.concat([y_channel, uv_channel], axis=3)
     rgb_from_gen = tf.image.yuv_to_rgb(yuv_from_gen)
