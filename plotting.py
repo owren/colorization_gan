@@ -57,7 +57,7 @@ def plot_one(epoch, ds, discriminator, generator):
     for i in range(len(images)):
         fig.add_subplot(1, len(images), i + 1)
         plt.axis("off")
-        plt.text(0, 0, results[i])
+        plt.text(55, -5, results[i], size=16)
         plt.imshow(images[i])
 
     plt.text(-45, -45, "Epoch: " + str(epoch), fontsize=18)
