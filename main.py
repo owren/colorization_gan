@@ -43,6 +43,9 @@ def main():
                                      generator=generator,
                                      discriminator=discriminator)
 
+    # Restore latest checkpoint (not sure if works)
+    checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
+
     train(generator, discriminator, ds, checkpoint)
 
 
