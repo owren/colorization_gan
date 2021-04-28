@@ -4,6 +4,7 @@ from generator import create_generator
 from train import *
 
 
+@tf.function()
 def yuv_cast(img):
     """Normalizes the RGB image and casts it to YUV.
 
@@ -29,15 +30,20 @@ def main():
                                                              label_mode=None,
                                                              batch_size=BATCH_SIZE,
                                                              color_mode="rgb",
-                                                             image_size=(HEIGHT, WIDTH))
+                                                             image_size=(150, 150))
     ds.shuffle(100)
-
     ds = ds.map(yuv_cast)
+    ds = ds.map(lambda x: tf.image.random_crop(x, size=(BATCH_SIZE, HEIGHT, WIDTH, 3)))
 
     generator = create_generator()
     discriminator = create_discriminator()
 
-    train(generator, discriminator, ds)
+    checkpoint = tf.train.Checkpoint(generator_optimizer=g_optimizer,
+                                     discriminator_optimizer=d_optimizer,
+                                     generator=generator,
+                                     discriminator=discriminator)
+
+    train(generator, discriminator, ds, checkpoint)
 
 
 if __name__ == "__main__":

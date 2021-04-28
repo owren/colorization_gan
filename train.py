@@ -75,7 +75,7 @@ def train_step(generator, discriminator, images):
     return gen_total_loss, gen_loss, l1_loss, disc_total_loss, disc_gen_loss, disc_real_loss
 
 
-def train(generator, discriminator, dataset):
+def train(generator, discriminator, dataset, checkpoint):
     """Begins the training process of the GAN.
 
     Itereates through the total number of epochs and apply a trainstep on the GAN for each
@@ -87,7 +87,7 @@ def train(generator, discriminator, dataset):
         dataset: A tensorflow dataset.
     """
 
-    plot_one(-1, discriminator, generator)
+    plot_one(-1, dataset, discriminator, generator)
     for epoch in range(EPOCHS):
         losses = []
         start = time.time()
@@ -98,6 +98,9 @@ def train(generator, discriminator, dataset):
         print("Epoch " + str(epoch + 1) + ": " + str(round(time.time() - start, 3)) + " seconds")
         print_loss(losses)
 
-        plot_one(epoch, discriminator, generator)
+        plot_one(epoch, dataset, discriminator, generator)
 
+        # Save checkpoint every 20 epoch
+        if (epoch + 1) % 20 == 0:
+            checkpoint.save(file_prefix=checkpoint_prefix)
 

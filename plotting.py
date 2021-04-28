@@ -4,60 +4,46 @@ from config import *
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import numpy as np
+import csv
 
 
 def print_loss(losses):
     np_arr = np.array(losses)
-    losses_sum = np.sum(np_arr, axis=0)
+    losses_sum = np.mean(np_arr, axis=0)
 
-    print("Gen total loss: " + str(losses_sum[0]))
-    print("Gen loss: " + str(losses_sum[1]))
-    print("L1 loss: " + str(losses_sum[2]))
-
-    print("Disc total loss: " + str(losses_sum[3]))
-    print("Disc Gen loss: " + str(losses_sum[4]))
-    print("Disc Real loss: " + str(losses_sum[5]))
+    wtr = csv.writer(open("losses.csv", "a"), delimiter=',', lineterminator='\n')
+    wtr.writerow([losses_sum])
 
 
-def load_one_img():
-    filename = random.choice(os.listdir("data/seg_train/forest/sub"))
-    path = "data/seg_train/forest/sub/" + filename
+def load_one_img(ds):
 
-    rgb_image = tf.keras.preprocessing.image.load_img(path, target_size=(HEIGHT, WIDTH))
-    rgb_image_tensor = tf.keras.preprocessing.image.img_to_array(rgb_image)
-    rgb_image_tensor = tf.expand_dims(rgb_image_tensor, axis=0)
+    for img in ds.take(1):
+        img = img[1, ...]
+        yuv_image_tensor = tf.expand_dims(img, axis=0)
 
-    return rgb_image_tensor
+        return yuv_image_tensor
 
 
-def plot_one(epoch, discriminator, generator):
+def plot_one(epoch, ds, discriminator, generator):
     """Plot a real image and a generated image from the grayscale version.
 
     Args:
         epoch: Integer inidicating the current epoch.
         discriminator: The keras discriminator model.
+        ds: Dataset.
         generator: The keras generator model.
     """
 
-    rgb_image_tensor = load_one_img()
-    rgb_image_tensor /= 255.
+    yuv_image_tensor = load_one_img(ds)
 
-    yuv_img = tf.image.rgb_to_yuv(rgb_image_tensor)
-    y_channel = yuv_img[..., :1]
-
+    y_channel = yuv_image_tensor[..., :1]
     uv_channel = generator(y_channel, training=False)
-
-    #disc_real_output = discriminator(y_channel, (yuv_img[..., 1:] * 2))
-    #disc_gen_output = discriminator(y_channel, uv_channel)
-
-    #real_chance = cross_entropy(tf.ones_like(disc_real_output), disc_real_output)
-    #gen_chance = cross_entropy(tf.ones_like(disc_gen_output), disc_gen_output)
-
     uv_channel /= 2
 
     yuv_from_gen = tf.concat([y_channel, uv_channel], axis=3)
     rgb_from_gen = tf.image.yuv_to_rgb(yuv_from_gen)
 
+    rgb_image_tensor = tf.image.yuv_to_rgb(tf.concat([y_channel, yuv_image_tensor[..., 1:] / 2], axis=3))
     images = [rgb_image_tensor[0, ...], rgb_from_gen[0, ...]]
 
     fig = plt.figure()
