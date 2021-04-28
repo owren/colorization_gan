@@ -16,7 +16,6 @@ def print_loss(losses):
 
 
 def load_one_img(ds):
-
     for img in ds.take(1):
         img = img[1, ...]
         yuv_image_tensor = tf.expand_dims(img, axis=0)
@@ -38,6 +37,13 @@ def plot_one(epoch, ds, discriminator, generator):
 
     y_channel = yuv_image_tensor[..., :1]
     uv_channel = generator(y_channel, training=False)
+
+    disc_gen_result = discriminator([y_channel, uv_channel], training=False)
+    disc_gen_result = round(tf.math.reduce_mean(disc_gen_result).numpy(), 2)
+
+    disc_real_result = discriminator([y_channel, yuv_image_tensor[..., 1:]], training=False)
+    disc_real_result = round(tf.math.reduce_mean(disc_real_result).numpy(), 2)
+
     uv_channel /= 2
 
     yuv_from_gen = tf.concat([y_channel, uv_channel], axis=3)
@@ -45,11 +51,13 @@ def plot_one(epoch, ds, discriminator, generator):
 
     rgb_image_tensor = tf.image.yuv_to_rgb(tf.concat([y_channel, yuv_image_tensor[..., 1:] / 2], axis=3))
     images = [rgb_image_tensor[0, ...], rgb_from_gen[0, ...]]
+    results = [disc_real_result, disc_gen_result]
 
     fig = plt.figure()
     for i in range(len(images)):
         fig.add_subplot(1, len(images), i + 1)
         plt.axis("off")
+        plt.text(0, 0, results[i])
         plt.imshow(images[i])
 
     plt.text(-45, -45, "Epoch: " + str(epoch), fontsize=18)
@@ -58,5 +66,5 @@ def plot_one(epoch, ds, discriminator, generator):
     mean = tf.math.reduce_mean(uv_channel[0, ...])
     std = tf.math.reduce_std(uv_channel[0, ...])
 
-    #print("mean: " + str(mean))
-    #print("std: " + str(std))
+    # print("mean: " + str(mean))
+    # print("std: " + str(std))

@@ -4,7 +4,6 @@ from generator import create_generator
 from train import *
 
 
-@tf.function()
 def yuv_cast(img):
     """Normalizes the RGB image and casts it to YUV.
 
@@ -33,7 +32,7 @@ def main():
                                                              image_size=(150, 150))
     ds.shuffle(100)
     ds = ds.map(yuv_cast)
-    ds = ds.map(lambda x: tf.image.random_crop(x, size=(BATCH_SIZE, HEIGHT, WIDTH, 3)))
+    ds = ds.map(lambda x: tf.map_fn(lambda y: tf.image.random_crop(y, size=(HEIGHT, WIDTH, 3)), x))
 
     generator = create_generator()
     discriminator = create_discriminator()

@@ -103,4 +103,3 @@ def train(generator, discriminator, dataset, checkpoint):
         # Save checkpoint every 20 epoch
         if (epoch + 1) % 20 == 0:
             checkpoint.save(file_prefix=checkpoint_prefix)
-
