@@ -1,7 +1,7 @@
 import tensorflow as tf
 import time
 from config import *
-from plotting import plot_one, print_loss
+from plotting import *
 
 
 def discriminator_loss(disc_real_output, disc_gen_output):
@@ -55,7 +55,11 @@ def train_step(generator, discriminator, images):
         images: A image batch from the tensorflow dataset.
     """
     with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
+
+        # Get the grayscale part of the images in the batch.
         grayscale_batch =  images[..., :1]
+
+        # Get the UV part of the images in the batch.
         uv_batch = images[..., 1:]
 
         generated_image = generator(grayscale_batch, training=True)
@@ -85,8 +89,8 @@ def train(generator, discriminator, dataset, checkpoint):
         generator: A Keras Model which represent the Generator of the GAN.
         discriminator: A Keras Model which represent the Discrminiator of the GAN.
         dataset: A tensorflow dataset.
+        checkpoint: Tensorflow checkpoint object used to store checkpoints of the progress.
     """
-
     plot_one(-1, dataset, discriminator, generator)
     for epoch in range(EPOCHS):
         losses = []
@@ -96,7 +100,7 @@ def train(generator, discriminator, dataset, checkpoint):
             losses.append(loss)
 
         print("Epoch " + str(epoch + 1) + ": " + str(round(time.time() - start, 3)) + " seconds")
-        print_loss(losses)
+        store_loss(losses)
 
         plot_one(epoch, dataset, discriminator, generator)
 

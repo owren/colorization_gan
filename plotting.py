@@ -7,15 +7,28 @@ import numpy as np
 import csv
 
 
-def print_loss(losses):
+def store_loss(losses):
+    """Store loss of the current session.
+
+    The sequence of the losses is: gen_total_loss, gen_loss,
+    l1_loss, disc_total_loss, disc_gen_loss, disc_real_loss
+
+    Args:
+        losses: The loss of the model for the current epoch.
+    """
     np_arr = np.array(losses)
     losses_sum = np.mean(np_arr, axis=0)
 
-    wtr = csv.writer(open("losses.csv", "a"), delimiter=',', lineterminator='\n')
+    wtr = csv.writer(open(loss_filename, "a"), delimiter=",", lineterminator="\n")
     wtr.writerow([losses_sum])
 
 
 def load_one_img(ds):
+    """Load one image from the dataset
+
+    Args:
+        ds: The tensorflow dataset.
+    """
     for img in ds.take(1):
         img = img[1, ...]
         yuv_image_tensor = tf.expand_dims(img, axis=0)
@@ -62,9 +75,3 @@ def plot_one(epoch, ds, discriminator, generator):
 
     plt.text(-45, -45, "Epoch: " + str(epoch), fontsize=18)
     plt.show()
-
-    mean = tf.math.reduce_mean(uv_channel[0, ...])
-    std = tf.math.reduce_std(uv_channel[0, ...])
-
-    # print("mean: " + str(mean))
-    # print("std: " + str(std))
