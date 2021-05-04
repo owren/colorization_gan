@@ -29,9 +29,11 @@ def main():
                                                              label_mode=None,
                                                              batch_size=BATCH_SIZE,
                                                              color_mode="rgb",
-                                                             image_size=(150, 150))
-    ds.shuffle(100)
+                                                             image_size=(150, 150),
+                                                             shuffle=True)
     ds = ds.map(yuv_cast)
+
+    # Randomly crop every image in the dataset
     ds = ds.map(lambda x: tf.map_fn(lambda y: tf.image.random_crop(y, size=(HEIGHT, WIDTH, 3)), x))
 
     generator = create_generator()
@@ -43,7 +45,7 @@ def main():
                                      discriminator=discriminator)
 
     # Restore latest checkpoint (not sure if works)
-    checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
+    #checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
 
     train(generator, discriminator, ds, checkpoint)
 
