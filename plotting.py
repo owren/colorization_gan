@@ -20,7 +20,38 @@ def store_loss(losses):
     losses_sum = np.mean(np_arr, axis=0)
 
     wtr = csv.writer(open(loss_filename, "a"), delimiter=",", lineterminator="\n")
-    wtr.writerow([losses_sum])
+    wtr.writerow(losses_sum)
+
+
+def plot_loss(path_to_loss):
+    """Plots loss to png file in lossfig directory
+
+    Creates a graph of each loss and all the losses together
+
+    Args:
+        path_to_loss: string, path to csv file with six different losses
+    """
+    labels = ['gen_total_loss', 'gen_loss', 'l1_loss', 'disc_total_loss', 'disc_gen_loss', 'disc_real_loss']
+    with open(path_to_loss, newline='') as f:
+        reader = csv.reader(f)
+        data = np.array(list(reader))
+
+    os.mkdir('lossfig/losses_' + timestr)
+    epoch_count = range(1, data.shape[0] + 1)
+    for i in range(data.shape[1]):
+        plt.figure()
+        plt.plot(epoch_count, data[:, i].astype('float32'))
+        plt.xlabel('Epoch')
+        plt.ylabel(labels[i])
+        plt.savefig('lossfig/losses_' + timestr + '/' + labels[i] + '.png')
+
+    plt.figure()
+    for i in range(data.shape[1]):
+        plt.plot(epoch_count, data[:, i].astype('float32'))
+    plt.legend(labels)
+    plt.xlabel('Epoch')
+    plt.ylabel('loss')
+    plt.savefig('lossfig/losses_' + timestr + '/all_loss.png')
 
 
 def load_one_img(ds):
