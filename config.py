@@ -4,7 +4,7 @@ import time
 
 WIDTH = 128
 HEIGHT = 128
-BATCH_SIZE = 32
+BATCH_SIZE = 16
 EPOCHS = 1000
 
 learning_rate = 2e-4

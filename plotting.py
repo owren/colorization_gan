@@ -49,20 +49,21 @@ def plot_one(epoch, ds, discriminator, generator):
     yuv_image_tensor = load_one_img(ds)
 
     y_channel = yuv_image_tensor[..., :1]
-    uv_channel = generator(y_channel, training=False)
+    real_uv_channel = yuv_image_tensor[..., 1:]
+    gen_uv_channel = generator(y_channel, training=False)
 
-    disc_gen_result = discriminator([y_channel, uv_channel], training=False)
+    disc_gen_result = discriminator([y_channel, gen_uv_channel], training=False)
     disc_gen_result = round(tf.math.reduce_mean(disc_gen_result).numpy(), 2)
 
-    disc_real_result = discriminator([y_channel, yuv_image_tensor[..., 1:]], training=False)
+    disc_real_result = discriminator([y_channel, real_uv_channel], training=False)
     disc_real_result = round(tf.math.reduce_mean(disc_real_result).numpy(), 2)
 
-    uv_channel /= 2
+    gen_uv_channel /= 2
 
-    yuv_from_gen = tf.concat([y_channel, uv_channel], axis=3)
+    yuv_from_gen = tf.concat([y_channel, gen_uv_channel], axis=3)
     rgb_from_gen = tf.image.yuv_to_rgb(yuv_from_gen)
 
-    rgb_image_tensor = tf.image.yuv_to_rgb(tf.concat([y_channel, yuv_image_tensor[..., 1:] / 2], axis=3))
+    rgb_image_tensor = tf.image.yuv_to_rgb(tf.concat([y_channel, real_uv_channel / 2], axis=3))
     images = [rgb_image_tensor[0, ...], rgb_from_gen[0, ...]]
     results = [disc_real_result, disc_gen_result]
 

@@ -9,17 +9,17 @@ def create_discriminator():
 
     input_layer = tf.keras.layers.concatenate([inp, tar])
 
-    c1 = downsample(64, (4, 4), (2, 2))(input_layer)
-    c2 = downsample(128, (4, 4), (2, 2))(c1)
-    c3 = downsample(256, (4, 4), (2, 2))(c2)
+    c1 = downsample(64, (5, 5), (2, 2))(input_layer)
+    c2 = downsample(128, (5, 5), (2, 2))(c1)
+    c3 = downsample(256, (5, 5), (2, 2))(c2)
 
     zero_pad_1 = tf.keras.layers.ZeroPadding2D()(c3)
-    c4 = downsample(512, (4, 4), (1, 1))(zero_pad_1)
+    c4 = downsample(512, (5, 5), (1, 1))(zero_pad_1)
 
     zero_pad_2 = tf.keras.layers.ZeroPadding2D()(c4)
 
     output = tf.keras.layers.Conv2D(1,
-                                    kernel_size=(4, 4),
+                                    kernel_size=(5, 5),
                                     strides=(1, 1),
                                     padding="same",
                                     activation="sigmoid",
