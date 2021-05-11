@@ -69,10 +69,19 @@ def create_unet(inp):
         x = up(x)
         x = tf.keras.layers.Concatenate()([x, skip])
 
+    x = tf.keras.layers.Conv2DTranspose(2,
+                                         kernel_size=(4, 4),
+                                         strides=(2, 2),
+                                         padding="same",
+                                         use_bias=False,
+                                         activation="tanh")(x)
+
     return x
 
 
 def create_generator():
+    init = tf.random_normal_initializer(0., 0.02)
+
     inp_1 = tf.keras.layers.Input(shape=[HEIGHT, WIDTH, 1])
     inp_2 = tf.keras.layers.Input(shape=[HEIGHT, WIDTH, 1])
 
@@ -81,13 +90,15 @@ def create_generator():
 
     fuse = tf.keras.layers.Concatenate()([unet_1, unet_2])
 
-    output = tf.keras.layers.Conv2DTranspose(2,
-                                             kernel_size=(4, 4),
-                                             strides=(2, 2),
-                                             padding="same",
-                                             use_bias=False,
-                                             activation="tanh")(fuse)
+    output = tf.keras.layers.Conv2D(2,
+                                     kernel_size=(4, 4),
+                                     strides=(1, 1),
+                                     padding="same",
+                                     kernel_initializer=init,
+                                     use_bias=False,
+                                     activation="tanh")(fuse)
 
+    print(output.shape)
     model = tf.keras.Model(inputs=[inp_1, inp_2], outputs=output)
 
     # Uncomment to visualize the model
