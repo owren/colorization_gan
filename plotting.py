@@ -1,10 +1,21 @@
 import os
 import random
+
+import cv2
+
 from config import *
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import numpy as np
 import csv
+
+
+def get_channels(batch):
+    y = batch[..., :1]
+    uv = batch[..., 1:3]
+    edge = batch[..., 3:]
+
+    return y, uv, edge
 
 
 def store_loss(losses):
@@ -47,10 +58,9 @@ def plot_one(epoch, ds, discriminator, generator):
     """
 
     yuv_image_tensor = load_one_img(ds)
+    y_channel, real_uv_channel, edge_channel = get_channels(yuv_image_tensor)
 
-    y_channel = yuv_image_tensor[..., :1]
-    real_uv_channel = yuv_image_tensor[..., 1:]
-    gen_uv_channel = generator(y_channel, training=False)
+    gen_uv_channel = generator([y_channel, edge_channel], training=False)
 
     disc_gen_result = discriminator([y_channel, gen_uv_channel], training=False)
     disc_gen_result = round(tf.math.reduce_mean(disc_gen_result).numpy(), 2)

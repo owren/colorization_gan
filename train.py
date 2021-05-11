@@ -56,18 +56,14 @@ def train_step(generator, discriminator, images):
     """
     with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
 
-        # Get the grayscale part of the images in the batch.
-        grayscale_batch =  images[..., :1]
+        y, uv, edge =  get_channels(images)
 
-        # Get the UV part of the images in the batch.
-        uv_batch = images[..., 1:]
+        generated_image = generator([y, edge], training=True)
 
-        generated_image = generator(grayscale_batch, training=True)
+        disc_real_output = discriminator([y, uv], training=True)
+        disc_gen_output = discriminator([y, generated_image], training=True)
 
-        disc_real_output = discriminator([grayscale_batch, uv_batch], training=True)
-        disc_gen_output = discriminator([grayscale_batch, generated_image], training=True)
-
-        gen_total_loss, gen_loss, l1_loss = generator_loss(disc_gen_output, generated_image, uv_batch)
+        gen_total_loss, gen_loss, l1_loss = generator_loss(disc_gen_output, generated_image, uv)
         disc_total_loss, disc_gen_loss, disc_real_loss = discriminator_loss(disc_real_output, disc_gen_output)
 
     gradients_of_generator = gen_tape.gradient(gen_total_loss, generator.trainable_variables)

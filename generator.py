@@ -3,45 +3,115 @@ import tensorflow as tf
 from config import *
 
 
-def create_generator():
-    inp = tf.keras.layers.Input(shape=[HEIGHT, WIDTH, 1])
+def residual_block(x, filters, kernel_size, dropout=True):
     init = tf.random_normal_initializer(0., 0.02)
 
-    t0 = tf.keras.layers.Conv2D(128, kernel_size=(5, 5), padding="same", kernel_initializer=init, use_bias=False)(inp)
-    t0 = tf.keras.layers.LeakyReLU()(t0)
-    t0 = tf.keras.layers.BatchNormalization()(t0)
+    lx = tf.keras.layers.Conv2D(filters, kernel_size, padding="same", kernel_initializer=init, use_bias=False)(x)
+    lx = tf.keras.layers.LeakyReLU()(lx)
+    lx = tf.keras.layers.BatchNormalization()(lx)
 
-    t1 = tf.keras.layers.Concatenate()([inp, t0])
-    t1 = tf.keras.layers.Conv2D(128, kernel_size=(5, 5), padding="same", kernel_initializer=init, use_bias=False)(t1)
-    t1 = tf.keras.layers.LeakyReLU()(t1)
-    t1 = tf.keras.layers.Dropout(0.5)(t1)
-    t1 = tf.keras.layers.BatchNormalization()(t1)
+    lx = tf.keras.layers.Conv2D(filters, kernel_size, padding="same", kernel_initializer=init, use_bias=False)(lx)
+    lx = tf.keras.layers.LeakyReLU()(lx)
+    lx = tf.keras.layers.BatchNormalization()(lx)
 
-    t2 = tf.keras.layers.Concatenate()([inp, t1])
-    t2 = tf.keras.layers.Conv2D(64, kernel_size=(5, 5), padding="same", kernel_initializer=init, use_bias=False)(t2)
-    t2 = tf.keras.layers.LeakyReLU()(t2)
-    t2 = tf.keras.layers.Dropout(0.5)(t2)
-    t2 = tf.keras.layers.BatchNormalization()(t2)
+    out = tf.keras.layers.Concatenate()([x, lx])
 
-    t3 = tf.keras.layers.Concatenate()([inp, t2])
-    t3 = tf.keras.layers.Conv2D(32, kernel_size=(5, 5), padding="same", kernel_initializer=init, use_bias=False)(t3)
-    t3 = tf.keras.layers.LeakyReLU()(t3)
-    t3 = tf.keras.layers.BatchNormalization()(t3)
+    out = tf.keras.layers.LeakyReLU()(out)
 
-    t4 = tf.keras.layers.Concatenate()([inp, t3])
-    output = tf.keras.layers.Conv2D(2,
-                                    kernel_size=(5, 5),
-                                    strides=(1, 1),
-                                    padding="same",
-                                    kernel_initializer=init,
-                                    use_bias=False,
-                                    activation="tanh")(t4)
+    if dropout:
+        out = tf.keras.layers.Dropout(0.5)(out)
 
-    model = tf.keras.Model(inputs=inp, outputs=output)
+    out = tf.keras.layers.BatchNormalization()(out)
+
+    return out
+
+
+def block(filters):
+    init = tf.random_normal_initializer(0., 0.02)
+
+    x = tf.keras.Sequential()
+    x.add(tf.keras.layers.Conv2D(filters, kernel_size=(3, 3), padding="same", kernel_initializer=init, use_bias=False))
+    x.add(tf.keras.layers.BatchNormalization())
+    x.add(tf.keras.layers.LeakyReLU())
+
+    return x
+
+
+def create_unet(inp):
+    down_stack = [
+        downsample(64, (4, 4), (2, 2), batchnorm=False),
+        downsample(128, (4, 4), (2, 2)),
+        downsample(256, (4, 4), (2, 2)),
+        downsample(512, (4, 4), (2, 2)),
+        downsample(512, (4, 4), (2, 2)),
+        downsample(512, (4, 4), (2, 2)),
+        downsample(512, (4, 4), (2, 2)),
+    ]
+
+    up_stack = [
+        upsample(512, (4, 4), (2, 2), dropout=True),
+        upsample(512, (4, 4), (2, 2), dropout=True),
+        upsample(512, (4, 4), (2, 2)),
+        upsample(256, (4, 4), (2, 2)),
+        upsample(128, (4, 4), (2, 2)),
+        upsample(64, (4, 4), (2, 2))
+    ]
+
+    x = inp
+    skips = []
+    for down in down_stack:
+        x = down(x)
+        skips.append(x)
+
+    skips = reversed(skips[:-1])
+
+    for up, skip in zip(up_stack, skips):
+        x = up(x)
+        x = tf.keras.layers.Concatenate()([x, skip])
+
+    return x
+
+
+def create_generator():
+    inp_1 = tf.keras.layers.Input(shape=[HEIGHT, WIDTH, 1])
+    inp_2 = tf.keras.layers.Input(shape=[HEIGHT, WIDTH, 1])
+
+    unet_1 = create_unet(inp_1)
+    unet_2 = create_unet(inp_2)
+
+    fuse = tf.keras.layers.Concatenate()([unet_1, unet_2])
+
+    output = tf.keras.layers.Conv2DTranspose(2,
+                                             kernel_size=(4, 4),
+                                             strides=(2, 2),
+                                             padding="same",
+                                             use_bias=False,
+                                             activation="tanh")(fuse)
+
+    model = tf.keras.Model(inputs=[inp_1, inp_2], outputs=output)
 
     # Uncomment to visualize the model
     tf.keras.utils.plot_model(model, to_file="gen.png", show_shapes=True, dpi=64)
-    model.summary()
 
     return model
+
+
+def new_generator():
+    pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

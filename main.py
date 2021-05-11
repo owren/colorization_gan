@@ -2,6 +2,7 @@ import tensorflow as tf
 from discriminator import create_discriminator
 from generator import create_generator
 from train import *
+import cv2
 
 
 def yuv_cast(img):
@@ -22,9 +23,57 @@ def yuv_cast(img):
     return img
 
 
+def load_data():
+
+    path = "data/seg_train/forest/sub"
+    _, _, filenames = next(os.walk(path))
+
+    #shuffle = random.shuffle(filenames)
+    const = tf.constant(filenames)
+
+    ds = []
+
+    for img in const:
+        image_string = tf.io.read_file(path + "/" + img)
+        image_decoded = tf.image.decode_jpeg(image_string, channels=3)
+        image = tf.cast(image_decoded, tf.float32)
+
+        try:
+            image = tf.image.random_crop(image, size=(HEIGHT, WIDTH, 3))
+        except:
+            image = tf.image.resize(image, size=(HEIGHT, WIDTH))
+
+        image /= 255.
+        image = tf.image.rgb_to_yuv(image)
+        y = image[..., :1]
+        uv_normalize = image[..., 1:] * 2
+
+        img_numpy = y.numpy()
+        img_numpy = np.array(img_numpy * 255, dtype=np.uint8)
+        edge = cv2.Laplacian(img_numpy, HEIGHT, WIDTH)
+        edge = tf.cast(edge, tf.float32)
+        edge_tensor = tf.convert_to_tensor(edge)
+        edge_tensor = tf.expand_dims(edge_tensor, axis=2)
+
+        image = tf.concat([y, uv_normalize, edge_tensor], axis=2)
+        ds.append(image)
+
+    ds = tf.data.Dataset.from_tensor_slices(ds)
+    ds = tf.data.Dataset.shuffle(ds, buffer_size=500)
+    ds = ds.batch(BATCH_SIZE)
+
+
+    return ds
+
+
+
 def main():
     """Creates the dataset, generator, and discrminiator then begin the training process"""
 
+    ds = load_data()
+
+
+    '''
     ds = tf.keras.preprocessing.image_dataset_from_directory("data/seg_train/forest",
                                                              label_mode=None,
                                                              batch_size=BATCH_SIZE,
@@ -32,9 +81,29 @@ def main():
                                                              image_size=(150, 150),
                                                              shuffle=True)
     ds = ds.map(yuv_cast)
-
+    
     # Randomly crop every image in the dataset
     ds = ds.map(lambda x: tf.map_fn(lambda y: tf.image.random_crop(y, size=(HEIGHT, WIDTH, 3)), x))
+    
+    for img in ds.take(1):
+        img = img[1, ...]
+        #img = tf.expand_dims(img, axis=0)
+        grayscale_tensor = img[..., :1]
+        #edge = tf.image.sobel_edges(grayscale_tensor)
+
+        grayscale_numpy = grayscale_tensor.numpy()
+
+        grayscale_numpy = np.array(grayscale_numpy * 255, dtype=np.uint8)
+        plt.imshow(grayscale_numpy, cmap="gray")
+        plt.show()
+
+        #grayscale_cv = cv2.Canny(grayscale_numpy, HEIGHT, WIDTH)
+
+        edge = cv2.Laplacian(grayscale_numpy, HEIGHT, WIDTH)
+        plt.imshow(edge, cmap="gray")
+        plt.show()
+        print("x")
+    '''
 
     generator = create_generator()
     discriminator = create_discriminator()
@@ -45,7 +114,7 @@ def main():
                                      discriminator=discriminator)
 
     # Restore latest checkpoint (not sure if works)
-    #checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
+    # checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
 
     train(generator, discriminator, ds, checkpoint)
 
