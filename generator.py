@@ -36,10 +36,10 @@ def create_unet(inp):
         x = tf.keras.layers.Concatenate()([x, skip])
 
     x = tf.keras.layers.Conv2DTranspose(2,
-                                         kernel_size=(4, 4),
-                                         strides=(2, 2),
-                                         padding="same",
-                                         use_bias=False)(x)
+                                        kernel_size=(4, 4),
+                                        strides=(2, 2),
+                                        padding="same",
+                                        use_bias=False)(x)
 
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.LeakyReLU()(x)
@@ -59,12 +59,12 @@ def create_generator():
     fuse = tf.keras.layers.Concatenate()([unet_1, unet_2])
 
     output = tf.keras.layers.Conv2D(2,
-                                     kernel_size=(4, 4),
-                                     strides=(1, 1),
-                                     padding="same",
-                                     kernel_initializer=init,
-                                     use_bias=False,
-                                     activation="tanh")(fuse)
+                                    kernel_size=(4, 4),
+                                    strides=(1, 1),
+                                    padding="same",
+                                    kernel_initializer=init,
+                                    use_bias=False,
+                                    activation="tanh")(fuse)
 
     print(output.shape)
     model = tf.keras.Model(inputs=[inp_1, inp_2], outputs=output)
@@ -73,24 +73,3 @@ def create_generator():
     tf.keras.utils.plot_model(model, to_file="gen.png", show_shapes=True, dpi=64)
 
     return model
-
-
-def new_generator():
-    pass
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
