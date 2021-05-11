@@ -3,40 +3,6 @@ import tensorflow as tf
 from config import *
 
 
-def residual_block(x, filters, kernel_size, dropout=True):
-    init = tf.random_normal_initializer(0., 0.02)
-
-    lx = tf.keras.layers.Conv2D(filters, kernel_size, padding="same", kernel_initializer=init, use_bias=False)(x)
-    lx = tf.keras.layers.LeakyReLU()(lx)
-    lx = tf.keras.layers.BatchNormalization()(lx)
-
-    lx = tf.keras.layers.Conv2D(filters, kernel_size, padding="same", kernel_initializer=init, use_bias=False)(lx)
-    lx = tf.keras.layers.LeakyReLU()(lx)
-    lx = tf.keras.layers.BatchNormalization()(lx)
-
-    out = tf.keras.layers.Concatenate()([x, lx])
-
-    out = tf.keras.layers.LeakyReLU()(out)
-
-    if dropout:
-        out = tf.keras.layers.Dropout(0.5)(out)
-
-    out = tf.keras.layers.BatchNormalization()(out)
-
-    return out
-
-
-def block(filters):
-    init = tf.random_normal_initializer(0., 0.02)
-
-    x = tf.keras.Sequential()
-    x.add(tf.keras.layers.Conv2D(filters, kernel_size=(3, 3), padding="same", kernel_initializer=init, use_bias=False))
-    x.add(tf.keras.layers.BatchNormalization())
-    x.add(tf.keras.layers.LeakyReLU())
-
-    return x
-
-
 def create_unet(inp):
     down_stack = [
         downsample(64, (4, 4), (2, 2), batchnorm=False),
@@ -73,8 +39,10 @@ def create_unet(inp):
                                          kernel_size=(4, 4),
                                          strides=(2, 2),
                                          padding="same",
-                                         use_bias=False,
-                                         activation="tanh")(x)
+                                         use_bias=False)(x)
+
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.LeakyReLU()(x)
 
     return x
 

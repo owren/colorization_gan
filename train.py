@@ -1,7 +1,7 @@
 import tensorflow as tf
 import time
 from config import *
-from plotting import *
+from utility import *
 
 
 def discriminator_loss(disc_real_output, disc_gen_output):
