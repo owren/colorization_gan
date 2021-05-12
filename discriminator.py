@@ -1,9 +1,14 @@
-from model_methods import downsample
 import tensorflow as tf
-from config import *
+from config import HEIGHT, WIDTH
+from model_methods import downsample
 
 
 def create_discriminator():
+    """Creates a discriminiator similiar to PatchGAN.
+
+    Returns:
+        A Keras model.
+    """
     inp = tf.keras.layers.Input(shape=[HEIGHT, WIDTH, 1], name="input_image")
     tar = tf.keras.layers.Input(shape=[HEIGHT, WIDTH, 2], name="target_image")
 

@@ -1,7 +1,7 @@
 import tensorflow as tf
 import time
-from config import *
-from utility import *
+from config import cross_entropy, g_optimizer, d_optimizer, EPOCHS
+from utility import get_channels, plot_one, store_loss
 
 
 def discriminator_loss(disc_real_output, disc_gen_output):
@@ -53,9 +53,13 @@ def train_step(generator, discriminator, images):
         generator: A Keras Model which represent the Generator of the GAN.
         discriminator: A Keras Model which represent the Discrminiator of the GAN.
         images: A image batch from the tensorflow dataset.
+
+    Returns:
+        The different losses from the generator and discriminator.
     """
     with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
 
+        # Get the Y part, UV part, and edge version of the images in the batch.
         y, uv, edge =  get_channels(images)
 
         generated_image = generator([y, edge], training=True)
@@ -63,19 +67,22 @@ def train_step(generator, discriminator, images):
         disc_real_output = discriminator([y, uv], training=True)
         disc_gen_output = discriminator([y, generated_image], training=True)
 
+        # Caluclate the loss of the generator and the discriminator.
         gen_total_loss, gen_loss, l1_loss = generator_loss(disc_gen_output, generated_image, uv)
         disc_total_loss, disc_gen_loss, disc_real_loss = discriminator_loss(disc_real_output, disc_gen_output)
 
+    # Caluclates the gradeints of the generator and discrminiator with respect to the loss.
     gradients_of_generator = gen_tape.gradient(gen_total_loss, generator.trainable_variables)
     gradients_of_discriminator = disc_tape.gradient(disc_total_loss, discriminator.trainable_variables)
 
+    # Apply backpropagation to the generator and discriminator given the gradients.
     g_optimizer.apply_gradients(zip(gradients_of_generator, generator.trainable_variables))
     d_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
 
     return gen_total_loss, gen_loss, l1_loss, disc_total_loss, disc_gen_loss, disc_real_loss
 
 
-def train(generator, discriminator, dataset, checkpoint):
+def train(generator, discriminator, dataset):
     """Begins the training process of the GAN.
 
     Itereates through the total number of epochs and apply a trainstep on the GAN for each
@@ -85,7 +92,6 @@ def train(generator, discriminator, dataset, checkpoint):
         generator: A Keras Model which represent the Generator of the GAN.
         discriminator: A Keras Model which represent the Discrminiator of the GAN.
         dataset: A tensorflow dataset.
-        checkpoint: Tensorflow checkpoint object used to store checkpoints of the progress.
     """
     plot_one(-1, dataset, discriminator, generator)
     for epoch in range(EPOCHS):
@@ -96,14 +102,11 @@ def train(generator, discriminator, dataset, checkpoint):
             losses.append(loss)
 
         print("Epoch " + str(epoch + 1) + ": " + str(round(time.time() - start, 3)) + " seconds")
-        store_loss(losses)
 
+        store_loss(losses)
         plot_one(epoch, dataset, discriminator, generator)
 
-        # Save checkpoint every 20 epoch
-        if (epoch + 1) % 20 == 0:
-            checkpoint.save(file_prefix=checkpoint_prefix)
-
+        # Save the model every 50th epoch.
         if (epoch + 1) % 50 == 0:
-            generator.save('./models/gen_model_wnet_' + str(epoch) + '.h5')
-            discriminator.save('./models/disc_model_wnet_' + str(epoch) + '.h5')
+            generator.save("./models/gen_model_wnet_" + str(epoch) + ".h5")
+            discriminator.save("./models/disc_model_wnet_" + str(epoch) + ".h5")

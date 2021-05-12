@@ -1,4 +1,4 @@
-from config import *
+import tensorflow as tf
 
 
 def downsample(filters, kernel_size, strides, batchnorm=True):

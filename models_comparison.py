@@ -1,4 +1,3 @@
-from main import yuv_cast
 import tensorflow as tf
 from tensorflow.keras import models
 import random

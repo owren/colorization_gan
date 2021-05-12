@@ -1,13 +1,9 @@
-import os
-import random
-
-import cv2
-
-from config import *
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import numpy as np
 import csv
+
+from config import loss_filename
 
 
 def get_channels(batch):
