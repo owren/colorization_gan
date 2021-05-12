@@ -7,48 +7,9 @@ import os
 import cv2
 import numpy as np
 
-
 from config import HEIGHT, WIDTH, BATCH_SIZE
 from plotting import get_channels
-
-
-def load_data(path):
-    _, _, filenames = next(os.walk(path))
-
-    const = tf.constant(filenames)
-
-    ds = []
-
-    for img in const:
-        image_string = tf.io.read_file(path + "/" + img)
-        image_decoded = tf.image.decode_jpeg(image_string, channels=3)
-        image = tf.cast(image_decoded, tf.float32)
-
-        try:
-            image = tf.image.random_crop(image, size=(HEIGHT, WIDTH, 3))
-        except:
-            image = tf.image.resize(image, size=(HEIGHT, WIDTH))
-
-        image /= 255.
-        image = tf.image.rgb_to_yuv(image)
-        y = image[..., :1]
-        uv_normalize = image[..., 1:] * 2
-
-        img_numpy = y.numpy()
-        img_numpy = np.array(img_numpy * 255, dtype=np.uint8)
-        edge = cv2.Laplacian(img_numpy, HEIGHT, WIDTH)
-        edge = tf.cast(edge, tf.float32)
-        edge_tensor = tf.convert_to_tensor(edge)
-        edge_tensor = tf.expand_dims(edge_tensor, axis=2)
-
-        image = tf.concat([y, uv_normalize, edge_tensor], axis=2)
-        ds.append(image)
-
-    ds = tf.data.Dataset.from_tensor_slices(ds)
-    ds = tf.data.Dataset.shuffle(ds, buffer_size=500)
-    ds = ds.batch(BATCH_SIZE)
-
-    return ds
+from main import load_data
 
 
 def predict_one_img(generator, y_channel, edge):
