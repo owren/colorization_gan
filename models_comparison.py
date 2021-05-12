@@ -8,7 +8,7 @@ import cv2
 import numpy as np
 
 from config import HEIGHT, WIDTH, BATCH_SIZE
-from plotting import get_channels
+from utility import get_channels
 from main import load_data
 
 
@@ -23,7 +23,7 @@ def predict_one_img(generator, y_channel, edge):
 	return images
 
 
-def plot_row(i, original_image, wgan_100_image, img200, img300, wgan_image, fig):
+def plot_row(i, original_image, wnet_100_image, img200, img300, wnet_image, fig):
 	fig.add_subplot(5, 5, (i*5 + 1))
 	plt.imshow(original_image[0])
 	plt.axis('off')
@@ -31,28 +31,28 @@ def plot_row(i, original_image, wgan_100_image, img200, img300, wgan_image, fig)
 		plt.title("Original")
 
 	fig.add_subplot(5, 5, (i*5 + 1)+1)
-	plt.imshow(wgan_100_image[0])
+	plt.imshow(wnet_100_image[0])
 	plt.axis('off')
 	if i == 0:
-		plt.title("W-gan 100 epochs")
+		plt.title("W-net 100 epochs")
 
 	fig.add_subplot(5, 5, (i * 5 + 1) + 2)
 	plt.imshow(img200[0])
 	plt.axis('off')
 	if i == 0:
-		plt.title("W-gan 200 epochs")
+		plt.title("W-net 200 epochs")
 
 	fig.add_subplot(5, 5, (i * 5 + 1) + 3)
 	plt.imshow(img300[0])
 	plt.axis('off')
 	if i == 0:
-		plt.title("W-gan 300 epochs")
+		plt.title("W-net 300 epochs")
 
 	fig.add_subplot(5, 5, (i * 5 + 1) + 4)
-	plt.imshow(wgan_image[0])
+	plt.imshow(wnet_image[0])
 	plt.axis('off')
 	if i == 0:
-		plt.title("W-gan 1000 epochs")
+		plt.title("W-net 1000 epochs")
 
 	return fig
 
@@ -69,10 +69,10 @@ def predict_one_img(generator, yuv_image, n):
 
 
 def main():
-	wgan_generator_1000 = models.load_model("models/wgan/gen_model_999.h5")
-	wgan_100_generator = models.load_model("models/wgan/gen_model_99.h5")
-	wgan_200_generator = models.load_model("models/wgan/gen_model_199.h5")
-	wgan_300_generator = models.load_model("models/wgan/gen_model_299.h5")
+	wnet_generator_1000 = models.load_model("models/wnet/gen_model_999.h5")
+	wnet_100_generator = models.load_model("models/wnet/gen_model_99.h5")
+	wnet_200_generator = models.load_model("models/wnet/gen_model_199.h5")
+	wnet_300_generator = models.load_model("models/wnet/gen_model_299.h5")
 
 	ds = load_data("data/seg_test/forest")
 
@@ -91,14 +91,14 @@ def main():
 		yuv = images[row]
 		y, uv, edge = get_channels(yuv)
 
-		rgb_wgan_100 = predict_one_img(wgan_100_generator, y, edge)
-		rgb_wgan_200 = predict_one_img(wgan_200_generator, y, edge)
-		rgb_wgan_300 = predict_one_img(wgan_300_generator, y, edge)
-		rgb_wgan_1000 = predict_one_img(wgan_generator_1000, y, edge)
+		rgb_wnet_100 = predict_one_img(wnet_100_generator, y, edge)
+		rgb_wnet_200 = predict_one_img(wnet_200_generator, y, edge)
+		rgb_wnet_300 = predict_one_img(wnet_300_generator, y, edge)
+		rgb_wnet_1000 = predict_one_img(wnet_generator_1000, y, edge)
 
 		rgb_original = tf.image.yuv_to_rgb(tf.concat([y, uv/2], axis=3))
 
-		plot_row(row, rgb_original, rgb_wgan_100, rgb_wgan_200, rgb_wgan_300, rgb_wgan_1000, fig)
+		plot_row(row, rgb_original, rgb_wnet_100, rgb_wnet_200, rgb_wnet_300, rgb_wnet_1000, fig)
 
 	plt.margins(1,1)
 	plt.savefig("comparison.png", bbox_inches = 'tight', pad_inches = 1)
