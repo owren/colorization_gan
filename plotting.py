@@ -1,8 +1,6 @@
 import os
 import random
 
-import cv2
-
 from config import *
 import tensorflow as tf
 import matplotlib.pyplot as plt
