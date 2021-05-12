@@ -23,9 +23,7 @@ def yuv_cast(img):
     return img
 
 
-def load_data():
-
-    path = "data/seg_train/forest/sub"
+def load_data(path):
     _, _, filenames = next(os.walk(path))
 
     #shuffle = random.shuffle(filenames)
@@ -70,7 +68,7 @@ def load_data():
 def main():
     """Creates the dataset, generator, and discrminiator then begin the training process"""
 
-    ds = load_data()
+    ds = load_data("data/seg_train/forest/sub")
 
 
     '''
@@ -122,8 +120,8 @@ def main():
 if __name__ == "__main__":
 
     # Only neccessary if CUDA is enabled.
-    physical_devices = tf.config.list_physical_devices("GPU")
-    tf.config.experimental.set_memory_growth(physical_devices[0], True)
+    #physical_devices = tf.config.list_physical_devices("GPU")
+    #tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
     # Enable when debugging '@tf.function'.
     tf.config.run_functions_eagerly(True)
