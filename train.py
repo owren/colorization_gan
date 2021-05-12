@@ -103,3 +103,7 @@ def train(generator, discriminator, dataset, checkpoint):
         # Save checkpoint every 20 epoch
         if (epoch + 1) % 20 == 0:
             checkpoint.save(file_prefix=checkpoint_prefix)
+
+        if (epoch + 1) % 50 == 0:
+            generator.save('./models/gen_model_wnet_' + str(epoch) + '.h5')
+            discriminator.save('./models/disc_model_wnet_' + str(epoch) + '.h5')
