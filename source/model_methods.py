@@ -1,4 +1,4 @@
-from config import *
+import tensorflow as tf
 
 
 def downsample(filters, kernel_size, strides, batchnorm=True):
@@ -14,11 +14,13 @@ def downsample(filters, kernel_size, strides, batchnorm=True):
         A sequential model which consists of a Convolutional layer, a Batch Normalization layer
         (if enabled), and a Leakyrelu layer.
     """
+    init = tf.random_normal_initializer(0., 0.02)
     layer = tf.keras.Sequential()
     layer.add(tf.keras.layers.Conv2D(filters,
                                      kernel_size=kernel_size,
                                      strides=strides,
                                      padding="same",
+                                     kernel_initializer=init,
                                      use_bias=False))
 
     if batchnorm:
@@ -42,11 +44,13 @@ def upsample(filters, kernel_size, strides, dropout=False):
         A sequential model which consists of a Convolutional Tranpose layer, a Batch Normalization layer,
         a Dropout layer (if enabled), and a Leakyrelu layer.
     """
+    init = tf.random_normal_initializer(0., 0.02)
     block = tf.keras.Sequential()
     block.add(tf.keras.layers.Conv2DTranspose(filters,
                                               kernel_size=kernel_size,
                                               strides=strides,
                                               padding="same",
+                                              kernel_initializer=init,
                                               use_bias=False))
 
     block.add(tf.keras.layers.BatchNormalization())
