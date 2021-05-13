@@ -52,6 +52,7 @@ def load_data():
         The first 3 values is the YUV values of the image, the last value is the edge
         detection values of the image.
     """
+    print(DATA_PATH)
     _, _, filenames = next(os.walk(DATA_PATH))
     const = tf.constant(filenames)
 

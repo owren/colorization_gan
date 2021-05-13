@@ -1,6 +1,5 @@
 import tensorflow as tf
-
-from config import ENABLE_CUDA, DEBUG_MODE
+from config import ENABLE_CUDA, DEBUG_MODE, loss_filename
 from data_loader import load_data
 from discriminator import create_discriminator
 from generator import create_generator
@@ -14,6 +13,9 @@ def main():
 
     generator = create_generator()
     discriminator = create_discriminator()
+
+    # Clear the loss filename in case experiment runs with same experiment name
+    open(loss_filename, "w").close()
 
     train(generator, discriminator, ds)
 
