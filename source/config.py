@@ -23,9 +23,10 @@ cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=False)
 # DIRECTORY INFORMATION
 experiment_name = "experiment_1"
 path = os.path.abspath("../")
-DATA_PATH = os.path.join(path, "data/seg_train/forest")
-VALIDATION_PATH = os.path.join(path, "data/seg_validation/forest")
+DATA_PATH = os.path.join(path, "data/seg_train/sub2")
+VALIDATION_PATH = os.path.join(path, "data/seg_train/sub2")
 TEST_PATH = os.path.join(path, "data/seg_test/forest")
 MODEL_PATH = os.path.join(path, "models/" + experiment_name + "/")
 RESULT_PATH = os.path.join(path, "result/" + experiment_name + "/")
-loss_filename = os.path.join(path, "loss/" + experiment_name + ".csv")
+train_loss_filename = os.path.join(path, "loss/" + experiment_name + "_train.csv")
+validation_loss_filename = os.path.join(path, "loss/" + experiment_name + "_validation.csv")

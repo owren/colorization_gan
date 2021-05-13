@@ -3,8 +3,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import csv
 
-from config import loss_filename
-
 
 def get_channels(batch):
     """Splits the batch to the Y, UV, and Edge parts of the batch.
@@ -24,7 +22,7 @@ def get_channels(batch):
     return y, uv, edge
 
 
-def store_loss(losses):
+def store_loss(losses, filename):
     """Store loss of the current session.
 
     The sequence of the losses is: gen_total_loss, gen_loss,
@@ -32,11 +30,12 @@ def store_loss(losses):
 
     Args:
         losses: The loss of the model for the current epoch.
+        filename: CSV file where to store the losses.
     """
     np_arr = np.array(losses)
     losses_sum = np.mean(np_arr, axis=0)
 
-    wtr = csv.writer(open(loss_filename, "a"), delimiter=",", lineterminator="\n")
+    wtr = csv.writer(open(filename, "a"), delimiter=",", lineterminator="\n")
     wtr.writerow([losses_sum])
 
 

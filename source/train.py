@@ -1,7 +1,8 @@
 import numpy as np
 import tensorflow as tf
 import time
-from config import cross_entropy, g_optimizer, d_optimizer, EPOCHS, MODEL_SAVE, MODEL_PATH
+from config import cross_entropy, g_optimizer, d_optimizer, EPOCHS, MODEL_SAVE, MODEL_PATH, train_loss_filename, \
+    validation_loss_filename
 from utility import get_channels, plot_one, store_loss
 
 
@@ -91,8 +92,7 @@ def validate(generator, discriminator, validation_ds):
         discriminator: Keras model.
         validation_ds: Tensorflow dataset used for validation.
     """
-    gen_loss = []
-    disc_loss = []
+    losses = []
 
     for image_batch in validation_ds:
         y, uv, edge = get_channels(image_batch)
@@ -101,14 +101,14 @@ def validate(generator, discriminator, validation_ds):
         disc_real_output = discriminator([y, uv], training=False)
         disc_gen_output = discriminator([y, generated_image], training=False)
 
-        gen_loss.append(generator_loss(disc_gen_output, generated_image, uv))
-        disc_loss.append(discriminator_loss(disc_real_output, disc_gen_output))
+        gen_total_loss, gen_loss, l1_loss = generator_loss(disc_gen_output, generated_image, uv)
+        disc_total_loss, disc_gen_loss, disc_real_loss = discriminator_loss(disc_real_output, disc_gen_output)
 
-    gen_loss = np.array(gen_loss)
-    disc_loss = np.array(disc_loss)
+        losses.append((gen_total_loss, gen_loss, l1_loss, disc_total_loss, disc_gen_loss, disc_real_loss))
 
-    print("Generator Validation Loss: " + str(np.mean(gen_loss, axis=0)[0]))
-    print("Discriminator Validation Loss: " + str(np.mean(disc_loss, axis=0)[0]))
+    store_loss(losses, validation_loss_filename)
+    print("Generator Validation Loss: " + str(np.mean(losses, axis=0)[0]))
+    print("Discriminator Validation Loss: " + str(np.mean(losses, axis=0)[3]))
 
 
 def train(generator, discriminator, train_ds, validation_ds):
@@ -134,7 +134,7 @@ def train(generator, discriminator, train_ds, validation_ds):
         print("Epoch " + str(epoch + 1) + ": " + str(round(time.time() - start, 3)) + " seconds")
 
         validate(generator, discriminator, validation_ds)
-        store_loss(losses)
+        store_loss(losses, train_loss_filename)
         plot_one(epoch, train_ds, discriminator, generator)
 
         # Save the model every MODEL_SAVE (from config.py) epoch
