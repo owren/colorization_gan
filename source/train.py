@@ -123,7 +123,6 @@ def train(generator, discriminator, train_ds, validation_ds):
         train_ds: Tensorflow dataset used for training.
         validation_ds: Tensorflow dataset used for validation.
     """
-    validation_ds = train_ds
     plot_one(-1, train_ds, discriminator, generator)
     for epoch in range(EPOCHS):
         losses = []

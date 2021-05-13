@@ -43,7 +43,7 @@ def main():
     """
 
     # Get the latest model from the current experiment
-    with open(MODEL_PATH + "/model.txt", "r") as f:
+    with open(MODEL_PATH + "model.txt", "r") as f:
         gen_filename = f.readline().strip("\n")
         disc_filename = f.readline().strip("\n")
 
@@ -53,7 +53,7 @@ def main():
     generator_trained = tf.keras.models.load_model(MODEL_PATH + gen_filename)
     discriminator_trained = tf.keras.models.load_model(MODEL_PATH + disc_filename)
 
-    ds = load_data(DATA_PATH)
+    ds = load_data(TEST_PATH)
 
     gen_loss = []
     disc_loss = []
