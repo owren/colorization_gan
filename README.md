@@ -1,4 +1,4 @@
-# Colorization with W-Net
+# Colorization using W-Net cGAN
 Project for ACIT-4630: Advanced Machine Learning and Deep Learning.
 
 Marit Øye Gjersdal, Jon-Olav Holland, Pål Anders Owren.
@@ -6,7 +6,7 @@ Marit Øye Gjersdal, Jon-Olav Holland, Pål Anders Owren.
 ## Prerequisites
 Linux / Windows 10
 
-CUDAs
+CUDA
 
 Python 3
 
@@ -50,15 +50,18 @@ loss_filename = os.path.join(path, "loss/losses_" + timestr + ".csv")
 ## Training
 
 ```
+cd source
 python main.py
 ```
 The model is saved to ``models/experiment_name/``
 ## Testing
 
 ```
+cd source
 python test.py
 ```
 The result is saved to ``result/experiment_name/``
 ## Acknowledgments
 Image-to-Image Translation with Conditional Adversarial Networks (https://arxiv.org/abs/1611.07004)
-W-Net: A Deep Model for Fully Unsupervised Image Segmentation (https://arxiv.org/abs/1711.08506)
+
+DSM Building Shape Refinement from Combined Remote Sensing Images based on Wnet-cGANs (https://arxiv.org/abs/1903.03519)

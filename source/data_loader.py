@@ -63,7 +63,7 @@ def load_data():
         image_decoded = tf.image.decode_jpeg(image_string, channels=3)
         image = tf.cast(image_decoded, tf.float32)
 
-        # Try except used to handle data which does not have the common 150x150 size
+        # Try except used to handle data which does not have the common size
         try:
             image = tf.image.random_crop(image, size=(HEIGHT, WIDTH, 3))
         except:

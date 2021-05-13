@@ -73,7 +73,7 @@ def main():
 	wnet_200_generator = models.load_model("models/wnet/gen_model_199.h5")
 	wnet_300_generator = models.load_model("models/wnet/gen_model_299.h5")
 
-	ds = load_data("data/seg_test/forest")
+	ds = load_data()
 
 	fig = plt.figure()
 	fig.set_figheight(15)

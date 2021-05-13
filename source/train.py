@@ -1,6 +1,6 @@
 import tensorflow as tf
 import time
-from config import cross_entropy, g_optimizer, d_optimizer, EPOCHS, MODEL_SAVE
+from config import cross_entropy, g_optimizer, d_optimizer, EPOCHS, MODEL_SAVE, MODEL_PATH
 from utility import get_channels, plot_one, store_loss
 
 
@@ -108,5 +108,5 @@ def train(generator, discriminator, dataset):
 
         # Save the model every MODEL_SAVE (from config.py) epoch
         if (epoch + 1) % MODEL_SAVE == 0:
-            generator.save("MODEL_PATH/gen_model_wnet" + str(epoch) + ".h5")
-            discriminator.save("MODEL_PATH/disc_model_wnet_" + str(epoch) + ".h5")
+            generator.save(MODEL_PATH + "/gen_model_wnet_" + str(epoch) + ".h5")
+            discriminator.save(MODEL_PATH + "/disc_model_wnet_" + str(epoch) + ".h5")
