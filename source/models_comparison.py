@@ -6,7 +6,7 @@ import os
 import cv2
 import numpy as np
 
-from config import HEIGHT, WIDTH, BATCH_SIZE
+from config import HEIGHT, WIDTH, BATCH_SIZE, DATA_PATH
 from utility import get_channels
 from main import load_data
 
@@ -73,7 +73,7 @@ def main():
 	wnet_200_generator = models.load_model("models/wnet/gen_model_199.h5")
 	wnet_300_generator = models.load_model("models/wnet/gen_model_299.h5")
 
-	ds = load_data()
+	ds = load_data(DATA_PATH)
 
 	fig = plt.figure()
 	fig.set_figheight(15)

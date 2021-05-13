@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import tensorflow as tf
-from config import HEIGHT, WIDTH, BATCH_SIZE, DATA_PATH
+from config import HEIGHT, WIDTH, BATCH_SIZE
 
 
 def grayscale_to_edge(grayscale):
@@ -44,22 +44,21 @@ def yuv_cast(img):
     return y, uv_normalized
 
 
-def load_data():
-    """Loads the data from DATA_PATH and creates edge detection versions of the images.
+def load_data(ds_path):
+    """Loads the data from ds_path and creates edge detection versions of the images.
 
     Returns:
         A tensorflow dataset where each record is an image with the size HEIGHT * WIDTH * 4.
         The first 3 values is the YUV values of the image, the last value is the edge
         detection values of the image.
     """
-    print(DATA_PATH)
-    _, _, filenames = next(os.walk(DATA_PATH))
+    _, _, filenames = next(os.walk(ds_path))
     const = tf.constant(filenames)
 
     ds = []
 
     for img in const:
-        image_string = tf.io.read_file(DATA_PATH + "/" + img)
+        image_string = tf.io.read_file(ds_path + "/" + img)
         image_decoded = tf.image.decode_jpeg(image_string, channels=3)
         image = tf.cast(image_decoded, tf.float32)
 
