@@ -2,6 +2,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import numpy as np
 import csv
+import os
 
 
 def get_channels(batch):
@@ -35,8 +36,20 @@ def store_loss(losses, filename):
     np_arr = np.array(losses)
     losses_sum = np.mean(np_arr, axis=0)
 
-    wtr = csv.writer(open(filename, "a"), delimiter=",", lineterminator="\n")
-    wtr.writerow([losses_sum])
+    wtr = csv.writer(open(filename, 'a'), delimiter=',', lineterminator='\n')
+    wtr.writerow(losses_sum)
+
+
+def translate_loss(loss_file):
+    old = csv.reader(open('../loss/' + loss_file, 'r'), lineterminator='\n')
+    new = csv.writer(open('../loss/new_' + loss_file, 'a'), delimiter=',', lineterminator='\n')
+    for row in old:
+        temp = row[0]
+        if temp.startswith('[') and temp.endswith(']'):
+            temp = temp[1:-1]
+        temp = temp.split()
+        temp = [float(i) for i in temp]
+        new.writerow(temp)
 
 
 def load_one_img(ds):
@@ -90,3 +103,37 @@ def plot_one(epoch, ds, discriminator, generator):
 
     plt.text(-45, -45, "Epoch: " + str(epoch), fontsize=18)
     plt.show()
+
+
+def plot_loss(path_to_loss, file_name):
+    """Plots loss to png file in lossfig directory
+    Creates a graph of each loss and all the losses together
+    Args:
+        path_to_loss: string, path to csv file with six different losses
+        file_name: string, name of the csv file with six different losses
+    """
+    path = '../'
+    labels = ['gen_total_loss', 'gen_loss', 'l1_loss', 'disc_total_loss', 'disc_gen_loss', 'disc_real_loss']
+    with open(path_to_loss + file_name + '.csv', newline='') as f:
+        reader = csv.reader(f)
+        data = np.array(list(reader))
+
+    try:
+        os.mkdir(path + 'lossfig/losses_' + file_name)
+    except:
+        pass
+    epoch_count = range(1, data.shape[0] + 1)
+    for i in range(data.shape[1]):
+        plt.figure()
+        plt.plot(epoch_count, data[:, i].astype('float32'))
+        plt.xlabel('Epoch')
+        plt.ylabel(labels[i])
+        plt.savefig(path + 'lossfig/losses_' + file_name + '/' + labels[i] + '.png')
+
+    plt.figure()
+    for i in range(data.shape[1]):
+        plt.plot(epoch_count, data[:, i].astype('float32'))
+    plt.legend(labels)
+    plt.xlabel('Epoch')
+    plt.ylabel('loss')
+    plt.savefig(path + 'lossfig/losses_' + file_name + '/all_loss.png')
