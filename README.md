@@ -3,6 +3,7 @@ Project for ACIT-4630: Advanced Machine Learning and Deep Learning.
 
 Marit Øye Gjersdal, Jon-Olav Holland, Pål Anders Owren.
 
+![Examples](https://github.com/owren/colorization_gan/blob/main/readme_img/examples.png?raw=true)
 ![WNet-cGAN](https://github.com/owren/colorization_gan/blob/main/readme_img/model.jpg?raw=true)
 
 ## Prerequisites
