@@ -11,9 +11,10 @@ CUDA
 Python 3
 
 ## Clone Repository
-``git clone https://github.com/owren/colorization_gan``
-
-``cd colorization_gan/``
+```
+git clone https://github.com/owren/colorization_gan
+cd colorization_gan/
+```
 ## Requirements
 `pip install -r requirements.txt`
 
