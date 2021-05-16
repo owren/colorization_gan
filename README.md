@@ -1,4 +1,4 @@
-# Colorization using W-Net cGAN
+# Colorization using WNet-cGAN
 Project for ACIT-4630: Advanced Machine Learning and Deep Learning.
 
 Marit Øye Gjersdal, Jon-Olav Holland, Pål Anders Owren.
