@@ -20,10 +20,6 @@ def grayscale_to_edge(grayscale):
 
     grad_norm = np.sqrt(du_dx ** 2 + du_dy ** 2)
 
-    #edge = tf.cast(grad_norm, tf.float32)
-    #edge_tensor = tf.convert_to_tensor(edge)
-    #edge_tensor = tf.expand_dims(edge_tensor, axis=2)
-
     return grad_norm
 
 

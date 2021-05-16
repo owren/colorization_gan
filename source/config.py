@@ -12,7 +12,7 @@ BATCH_SIZE = 16
 
 # TRAINING INFORMATION
 EPOCHS = 1000
-MODEL_SAVE = 20  # How often to save the model
+MODEL_SAVE = 50  # How often to save the model
 
 # TRAINING/MODEL HYPERPARAMTERS
 learning_rate = 2e-4

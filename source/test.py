@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 import os
 
-from source.config import TEST_PATH, BATCH_SIZE, DATA_PATH, RESULT_PATH, MODEL_PATH
+from source.config import TEST_PATH, BATCH_SIZE, RESULT_PATH, MODEL_PATH
 from source.data_loader import load_data
 from source.train import generator_loss, discriminator_loss
 from source.utility import get_channels
