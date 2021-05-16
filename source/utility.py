@@ -137,3 +137,28 @@ def plot_loss(path_to_loss, file_name):
     plt.xlabel('Epoch')
     plt.ylabel('loss')
     plt.savefig(path + 'lossfig/losses_' + file_name + '/all_loss.png')
+
+
+def plot_train_val_loss(path_to_file, train_filename, val_filename):
+    path = '../'
+    labels = ['gen_total_loss', 'gen_loss', 'l1_loss', 'disc_total_loss', 'disc_gen_loss', 'disc_real_loss']
+    with open(path_to_file + train_filename + '.csv', newline='') as f:
+        reader = csv.reader(f)
+        train_data = np.array(list(reader))
+    with open(path_to_file + val_filename + '.csv', newline='') as f:
+        reader = csv.reader(f)
+        val_data = np.array(list(reader))
+
+    if train_data.shape == val_data.shape:
+        # change label number for the type of loss that should be plotted
+        label = 0
+        print(train_data.shape, val_data.shape)
+        epoch_count = range(1, train_data.shape[0] + 1)
+        #epoch_count = range(1, 200)
+        plt.figure()
+        plt.plot(epoch_count, val_data[:len(epoch_count), label].astype('float32'))
+        plt.plot(epoch_count, train_data[:len(epoch_count), label].astype('float32'))
+        plt.xlabel('Epoch')
+        plt.ylabel(labels[label])
+        plt.show()
+        #plt.savefig(pathname_and_filename + '.png')
