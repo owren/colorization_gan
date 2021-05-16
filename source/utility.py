@@ -158,6 +158,7 @@ def plot_train_val_loss(path_to_file, train_filename, val_filename):
         plt.figure()
         plt.plot(epoch_count, val_data[:len(epoch_count), label].astype('float32'))
         plt.plot(epoch_count, train_data[:len(epoch_count), label].astype('float32'))
+        plt.legend(['validation', 'train'])
         plt.xlabel('Epoch')
         plt.ylabel(labels[label])
         plt.show()
