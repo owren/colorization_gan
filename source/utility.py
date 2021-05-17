@@ -106,7 +106,8 @@ def plot_one(epoch, ds, discriminator, generator):
 
 
 def plot_loss(path_to_loss, file_name):
-    """Plots loss to png file in lossfig directory
+    """Plots loss to png file in lossfig directory.
+
     Creates a graph of each loss and all the losses together
     Args:
         path_to_loss: string, path to csv file with six different losses
@@ -122,6 +123,7 @@ def plot_loss(path_to_loss, file_name):
         os.mkdir(path + 'lossfig/losses_' + file_name)
     except:
         pass
+
     epoch_count = range(1, data.shape[0] + 1)
     for i in range(data.shape[1]):
         plt.figure()
@@ -140,6 +142,8 @@ def plot_loss(path_to_loss, file_name):
 
 
 def plot_train_val_loss(path_to_file, train_filename, val_filename):
+    """Plot the validation loss"""
+
     path = '../'
     labels = ['gen_total_loss', 'gen_loss', 'l1_loss', 'disc_total_loss', 'disc_gen_loss', 'disc_real_loss']
     with open(path_to_file + train_filename + '.csv', newline='') as f:

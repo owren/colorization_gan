@@ -2,7 +2,7 @@ import tensorflow as tf
 import os
 
 # DEVELOPER VARIABLES
-ENABLE_CUDA = False
+ENABLE_CUDA = True
 DEBUG_MODE = True
 
 # DATA INFORMATION

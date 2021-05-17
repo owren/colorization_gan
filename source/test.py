@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 import os
 
-from source.config import TEST_PATH, BATCH_SIZE, RESULT_PATH, MODEL_PATH
+from source.config import TEST_PATH, BATCH_SIZE, RESULT_PATH, MODEL_PATH, ENABLE_CUDA
 from source.data_loader import load_data
 from source.train import generator_loss, discriminator_loss
 from source.utility import get_channels
@@ -41,6 +41,11 @@ def main():
     and the real images. The samples are saved in the 'result' folder.
 
     """
+
+    # Only neccessary if CUDA is enabled
+    if ENABLE_CUDA:
+        physical_devices = tf.config.list_physical_devices("GPU")
+        tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
     # Get the latest model from the current experiment
     with open(MODEL_PATH + "model.txt", "r") as f:
