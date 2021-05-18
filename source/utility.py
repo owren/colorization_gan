@@ -40,18 +40,6 @@ def store_loss(losses, filename):
     wtr.writerow(losses_sum)
 
 
-def translate_loss(loss_file):
-    old = csv.reader(open('../loss/' + loss_file, 'r'), lineterminator='\n')
-    new = csv.writer(open('../loss/new_' + loss_file, 'a'), delimiter=',', lineterminator='\n')
-    for row in old:
-        temp = row[0]
-        if temp.startswith('[') and temp.endswith(']'):
-            temp = temp[1:-1]
-        temp = temp.split()
-        temp = [float(i) for i in temp]
-        new.writerow(temp)
-
-
 def load_one_img(ds):
     """Load one image from the dataset
 
