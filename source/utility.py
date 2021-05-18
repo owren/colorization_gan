@@ -142,8 +142,13 @@ def plot_loss(path_to_loss, file_name):
 
 
 def plot_train_val_loss(path_to_file, train_filename, val_filename):
-    """Plot the validation loss"""
+    """"Plots the train loss with the validation loss
 
+    Args:
+        path_to_file: string, to the loss files
+        train_filename: string, filename for train loss
+        val_filename: string, filename for validation loss
+    """
     path = '../'
     labels = ['gen_total_loss', 'gen_loss', 'l1_loss', 'disc_total_loss', 'disc_gen_loss', 'disc_real_loss']
     with open(path_to_file + train_filename + '.csv', newline='') as f:
@@ -158,7 +163,6 @@ def plot_train_val_loss(path_to_file, train_filename, val_filename):
         label = 0
         print(train_data.shape, val_data.shape)
         epoch_count = range(1, train_data.shape[0] + 1)
-        #epoch_count = range(1, 200)
         plt.figure()
         plt.plot(epoch_count, val_data[:len(epoch_count), label].astype('float32'))
         plt.plot(epoch_count, train_data[:len(epoch_count), label].astype('float32'))
@@ -166,4 +170,3 @@ def plot_train_val_loss(path_to_file, train_filename, val_filename):
         plt.xlabel('Epoch')
         plt.ylabel(labels[label])
         plt.show()
-        #plt.savefig(pathname_and_filename + '.png')
