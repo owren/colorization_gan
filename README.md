@@ -83,6 +83,11 @@ cd source
 python test.py
 ```
 The most recently saved model is used on the test dataset. The result is saved to ``result/experiment_name/``.
+
+A trained model can be found at https://drive.google.com/drive/folders/1uMqtH-vjJnuymHuuT0J-nITrrBUuT7sm?usp=sharing. 
+To use the trained model download the generator and discriminiator and put them in the models folder. Then add
+the filename of the generator on the first line of the models.txt file and the filename of the discriminiator to the second line.
+
 ## Acknowledgments
 Image-to-Image Translation with Conditional Adversarial Networks (https://arxiv.org/abs/1611.07004)
 
